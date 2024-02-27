@@ -20,9 +20,11 @@
       {
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
+            (pkgs.wrapHelm pkgs.kubernetes-helm { plugins = [ pkgs.kubernetes-helmPlugins.helm-diff ]; })
             (talhelper.packages.${system}.default)
             age
             go-task
+            helmfile
             kubectl
             sops
             talosctl
