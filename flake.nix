@@ -2,8 +2,7 @@
   description = "DH8 K8S dev env";
 
   inputs = {
-    # renovate: datasource=github-releases depName=NixOS/nixpkgs
-    nixpkgs.url = "github:NixOS/nixpkgs/23.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     # renovate: datasource=github-releases depName=numtide/flake-utils
     flake-utils.url = "github:numtide/flake-utils/v1.0.0";
     # renovate: datasource=github-releases depName=budimanjojo/talhelper

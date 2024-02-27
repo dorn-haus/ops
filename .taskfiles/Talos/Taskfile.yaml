@@ -4,9 +4,9 @@ version: 3
 vars:
   DOMAIN: k8s.dorn.haus
   # renovate: datasource=github-releases depName=siderolabs/talos
-  TALOS_VERSION: v1.6.1
+  TALOS_VERSION: v1.6.5
   # renovate: datasource=github-releases depName=siderolabs/kubelet
-  KUBERNETES_VERSION: v1.29.0
+  KUBERNETES_VERSION: v1.29.2
   TALOS_DIR: "{{.ROOT_DIR}}/talos"
   TALHELPER_SECRET_FILE: "{{.TALOS_DIR}}/talsecret.sops.yaml"
   TALHELPER_CONFIG_FILE: "{{.TALOS_DIR}}/talconfig.yaml"
@@ -65,25 +65,27 @@ tasks:
     desc: Bootstrap core apps
     dir: "{{.TALOS_DIR}}"
     cmds:
-      - until kubectl --kubeconfig {{.KUBECONFIG_FILE}} wait --for=condition=Ready nodes --all --timeout=600s; do sleep 2; done
+      - until kubectl wait --for=condition=Ready nodes --all --timeout=600s; do sleep 2; done
       - helmfile --file apps/helmfile.yaml apply --skip-diff-on-install --suppress-diff
-      - until kubectl --kubeconfig {{.KUBECONFIG_FILE}} wait --for=condition=Ready nodes --all --timeout=600s; do sleep 2; done
+      - until kubectl wait --for=condition=Ready nodes --all --timeout=600s; do sleep 2; done
     preconditions:
       - { msg: "Missing kubeconfig", sh: "test -f {{.KUBECONFIG_FILE}}" }
 
-  upgrade-talos:
-    desc: Upgrade Talos on a node
-    cmd: talosctl --nodes {{.node}} upgrade --image {{.image}} --preserve=true --reboot-mode=default
+  upgrade:talos:
+    desc: Upgrade Talos on a node to {{.TALOS_VERSION}}
+    cmd: talosctl --nodes {{.node}} upgrade --image ghcr.io/siderolabs/installer:{{.TALOS_VERSION}} --preserve=true --reboot-mode=default
     requires:
-      vars: ["node", "image"]
+      vars: ["node"]
     preconditions:
       - { msg: "Node not found", sh: "talosctl --nodes {{.node}} get machineconfig" }
+    status:
+      - talosctl version --nodes {{ .node }} --short | grep 'Tag.*{{ .TALOS_VERSION }}'
 
-  upgrade-k8s:
-    desc: Upgrade K8s on a node
-    cmd: talosctl --nodes {{.node}} upgrade-k8s --to {{.to}}
+  upgrade:k8s:
+    desc: Upgrade K8s on a node to {{.KUBERNETES_VERSION}}
+    cmd: talosctl --nodes {{.node}} upgrade-k8s --to {{.KUBERNETES_VERSION}}
     requires:
-      vars: ["node", "to"]
+      vars: ["node"]
     preconditions:
       - { msg: "Node not found", sh: "talosctl --nodes {{.node}} get machineconfig" }
 
