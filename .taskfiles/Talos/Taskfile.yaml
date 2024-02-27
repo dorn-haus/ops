@@ -8,7 +8,7 @@ vars:
   # renovate: datasource=github-releases depName=siderolabs/kubelet
   KUBERNETES_VERSION: v1.29.0
   TALOS_DIR: "{{.ROOT_DIR}}/talos"
-  TALHELPER_SECRET_FILE: "{{.TALOS_DIR}}/talhelper.sops.yaml"
+  TALHELPER_SECRET_FILE: "{{.TALOS_DIR}}/talsecret.sops.yaml"
   TALHELPER_CONFIG_FILE: "{{.TALOS_DIR}}/talconfig.yaml"
 
 
@@ -21,6 +21,7 @@ tasks:
       - task: bootstrap-genconfig
       - task: bootstrap-apply
       - task: bootstrap-install
+      - task: fetch-kubeconfig
       - talosctl health --server=false
 
   bootstrap-gensecret:
@@ -60,7 +61,35 @@ tasks:
     preconditions:
       - { msg: "Missing talhelper config file", sh: "test -f {{.TALHELPER_CONFIG_FILE}}" }
 
+  upgrade-talos:
+    desc: Upgrade Talos on a node
+    cmd: talosctl --nodes {{.node}} upgrade --image {{.image}} --preserve=true --reboot-mode=default
+    requires:
+      vars: ["node", "image"]
+    preconditions:
+      - { msg: "Node not found", sh: "talosctl --nodes {{.node}} get machineconfig" }
+
+  upgrade-k8s:
+    desc: Upgrade K8s on a node
+    cmd: talosctl --nodes {{.node}} upgrade-k8s --to {{.to}}
+    requires:
+      vars: ["node", "to"]
+    preconditions:
+      - { msg: "Node not found", sh: "talosctl --nodes {{.node}} get machineconfig" }
+
   fetch-kubeconfig:
-    desc: Generate talos kubeconfig
+    desc: Generate Talos kubeconfig
     dir: "{{.TALOS_DIR}}"
     cmd: until talhelper gencommand kubeconfig --extra-flags "--force" | bash; do sleep 10; done
+
+  reset-soft:
+    desc: Resets Talos nodes back to maintenance mode
+    prompt: This will destroy your cluster and reset the nodes back to maintenance mode... continue?
+    dir: "{{.TALOS_DIR}}"
+    cmd: talhelper gencommand reset --extra-flags "--reboot --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL --graceful=false --wait=false" | bash
+
+  reset-hard:
+    desc: Wipes Talos nodes entirely so they can be reinstalled by booting into the installer
+    prompt: DANGER!!! This will destroy your cluster and reset the nodes... continue?
+    dir: "{{.TALOS_DIR}}"
+    cmd: talhelper gencommand reset --extra-flags "--reboot --graceful=false --wait=false" | bash
