@@ -1,1 +1,3 @@
 .direnv
+age.key
+kubeconfig

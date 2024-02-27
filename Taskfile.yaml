@@ -1,0 +1,12 @@
+---
+version: 3
+
+vars:
+  KUBECONFIG_FILE: "{{.ROOT_DIR}}/kubeconfig"
+
+env:
+  KUBECONFIG: "{{.KUBECONFIG_FILE}}"
+
+includes:
+  sops: .taskfiles/Sops/Taskfile.yaml
+  talos: .taskfiles/Talos/Taskfile.yaml

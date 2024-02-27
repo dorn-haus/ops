@@ -1,0 +1,66 @@
+---
+version: 3
+
+vars:
+  DOMAIN: k8s.dorn.haus
+  # renovate: datasource=github-releases depName=siderolabs/talos
+  TALOS_VERSION: v1.6.1
+  # renovate: datasource=github-releases depName=siderolabs/kubelet
+  KUBERNETES_VERSION: v1.29.0
+  TALOS_DIR: "{{.ROOT_DIR}}/talos"
+  TALHELPER_SECRET_FILE: "{{.TALOS_DIR}}/talhelper.sops.yaml"
+  TALHELPER_CONFIG_FILE: "{{.TALOS_DIR}}/talconfig.yaml"
+
+
+tasks:
+  bootstrap:
+    desc: Bootstrap Talos cluster
+    dir: "{{.TALOS_DIR}}"
+    cmds:
+      - task: bootstrap-gensecret
+      - task: bootstrap-genconfig
+      - task: bootstrap-apply
+      - task: bootstrap-install
+      - talosctl health --server=false
+
+  bootstrap-gensecret:
+    desc: Generate Talos secrets
+    dir: "{{.TALOS_DIR}}"
+    cmds:
+      - talhelper gensecret --from-configfile ~/repos/my/lab/dh8/talos/controlplane.yaml > {{.TALHELPER_SECRET_FILE}}
+      - task: :sops:.encrypt-file
+        vars:
+          file: "{{.TALHELPER_SECRET_FILE}}"
+    preconditions:
+      - { msg: "Missing talhelper config file", sh: "test -f {{.TALHELPER_CONFIG_FILE}}" }
+    status:
+      - test -f "{{.TALHELPER_SECRET_FILE}}"
+
+  bootstrap-genconfig:
+    desc: Generate Talos configs
+    dir: "{{.TALOS_DIR}}"
+    cmd: talhelper genconfig
+    preconditions:
+      - { msg: "Missing talhelper config file", sh: "test -f {{.TALHELPER_CONFIG_FILE}}" }
+
+  bootstrap-apply:
+    desc: Apply Talos config on a node
+    dir: "{{.TALOS_DIR}}"
+    cmd: talhelper gencommand apply --extra-flags=--insecure | bash
+    preconditions:
+      - { msg: "Missing talhelper config file", sh: "test -f {{.TALHELPER_CONFIG_FILE}}" }
+
+  bootstrap-install:
+    desc: Install Talos cluster
+    dir: "{{.TALOS_DIR}}"
+    cmds:
+      - echo "Installing Talos... ignore the errors and be patient"
+      - until talhelper gencommand bootstrap | bash; do sleep 10; done
+      - sleep 10
+    preconditions:
+      - { msg: "Missing talhelper config file", sh: "test -f {{.TALHELPER_CONFIG_FILE}}" }
+
+  fetch-kubeconfig:
+    desc: Generate talos kubeconfig
+    dir: "{{.TALOS_DIR}}"
+    cmd: until talhelper gencommand kubeconfig --extra-flags "--force" | bash; do sleep 10; done
