@@ -2,11 +2,10 @@
 version: 3
 
 vars:
-  DOMAIN: k8s.dorn.haus
-  # renovate: datasource=github-releases depName=siderolabs/talos
-  TALOS_VERSION: v1.6.5
-  # renovate: datasource=github-releases depName=siderolabs/kubelet
-  KUBERNETES_VERSION: v1.29.2
+  TALOS_VERSION:
+    sh: yq -r .talosVersion talos/talconfig.yaml
+  KUBERNETES_VERSION:
+    sh: yq -r .kubernetesVersion talos/talconfig.yaml
   TALOS_DIR: "{{.ROOT_DIR}}/talos"
   TALHELPER_SECRET_FILE: "{{.TALOS_DIR}}/talsecret.sops.yaml"
   TALHELPER_CONFIG_FILE: "{{.TALOS_DIR}}/talconfig.yaml"
