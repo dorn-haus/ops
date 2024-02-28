@@ -21,17 +21,6 @@ considerations:
 - **6️⃣ IPv6 networking:** The goal is to manage the entire cluster via IPv6, and
   maybe one day disable IPv4 networking entirely.
 
-##  🧑‍💻️ development / operations
-
-The easiest way to get the required dependencies is to have `nix` and `direnv`
-configured. Entering the repo will execute the [`.envrc` file], which in turn
-will `use flake` to pull in dependencies from the `flake.nix` file.
-
-[`.envrc` file]: https://github.com/attilaolah/ops/blob/main/.envrc
-
-Without `direnv`, one would need to manually run `nix develop` to manually
-enter the development shell.
-
 ## 6️⃣ IPv6-only networking
 
 Enabling IPv6 tends to work just fine. Disabling IPv4 (as much as possible) is
@@ -54,6 +43,17 @@ give the nodes a static IPv4 address and route). SLAAC will still be used for
 configuring IPv6 addresses. Once the node is healthy and Cilium is configured,
 disable DHCP or remove any manually assigned IPv4 addresses, and the node
 should remain operational.
+
+##  🧑‍💻️ Dev/Ops
+
+The easiest way to get the required dependencies is to have `nix` and `direnv`
+configured. Entering the repo will execute the [`.envrc` file], which in turn
+will `use flake` to pull in dependencies from the `flake.nix` file.
+
+[`.envrc` file]: https://github.com/attilaolah/ops/blob/main/.envrc
+
+Without `direnv`, one would need to manually run `nix develop` to enter the
+development shell.
 
 ## 🚧 Under Construction
 
