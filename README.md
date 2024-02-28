@@ -21,7 +21,7 @@ considerations:
 - **6️⃣ IPv6 networking:** The goal is to manage the entire cluster via IPv6, and
   maybe one day disable IPv4 networking entirely.
 
-## **🧑‍💻️ development / operations**
+##  🧑‍💻️ development / operations
 
 The easiest way to get the required dependencies is to have `nix` and `direnv`
 configured. Entering the repo will execute the [`.envrc` file], which in turn
@@ -31,6 +31,23 @@ will `use flake` to pull in dependencies from the `flake.nix` file.
 
 Without `direnv`, one would need to manually run `nix develop` to manually
 enter the development shell.
+
+## 6️⃣ IPv6-only networking
+
+Enabling IPv6 tends to work just fine. Disabling IPv4 (as much as possible) is
+when things start to go south. There are a surprising number of popular
+domains, for example, that don't seem to have AAAA records yet. *I know, WTF,
+right?*
+
+At least the following workarounds are necessary:
+
+- **Time Servers**: `time.cloudflare.com` is a decent alternative that supports
+  IPv6.
+- **DNS (nameservers)**: Again Cloudflare provides fast public IPv6 nameservers:
+  `2606:4700:4700::1001` and `2606:4700:4700::1111`.
+- **Container registries**: There is a nice summary this comment:
+  https://github.com/docker/roadmap/issues/89#issuecomment-772644009. At the
+  time of writing, `mirror.gcr.io` seems to be a good alternative.
 
 ## 🚧 Under Construction
 

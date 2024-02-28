@@ -1,9 +1,9 @@
 ---
 clusterName: &cluster dh8
 # renovate: datasource=docker depName=ghcr.io/siderolabs/installer
-talosVersion: v1.6.1
+talosVersion: v1.6.5
 # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
-kubernetesVersion: v1.29.0
+kubernetesVersion: v1.29.2
 endpoint: https://[2001:171b:c9b8:8d40:ee8e:b5ff:fe6f:41d2]:6443
 domain: k8s.dorn.haus
 allowSchedulingOnControlPlanes: true
@@ -15,7 +15,21 @@ nodes:
     ipAddress: 2001:171b:c9b8:8d40:ee8e:b5ff:fe6f:41d2
     nameservers:
       - 2606:4700:4700::1001
+      - 2001:4860:4860::8844
       - 2606:4700:4700::1111
+      - 2001:4860:4860::8888
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "ec:8e:b5:6f:41:d2"
+        dhcp: false
+        addresses:
+          - 192.168.1.8/24
+          - 2001:171b:c9b8:8d40:ee8e:b5ff:fe6f:41d2/64
+          - fdaa:bbcc:ddee:0:ee8e:b5ff:fe6f:41d2/64
+        routes:
+          - network: ::/0
+            # MAC 90:4D:4A:CC:EF:8B → LL IPv6
+            gateway: fe80::924d:4aff:fecc:ef8b
 
 patches:
   - |-
