@@ -22,7 +22,7 @@ ipv4:
   enabled: false
 ipv6:
   enabled: true
-ipv6NativeRoutingCIDR: "fdd1:8::/64"
+ipv6NativeRoutingCIDR: "2001::/32"
 k8sServiceHost: "::"
 k8sServicePort: 7445
 kubeProxyReplacement: true

@@ -6,6 +6,11 @@ talosVersion: v1.6.5
 kubernetesVersion: v1.29.2
 endpoint: https://[2001:171b:c9b8:8d40:ee8e:b5ff:fe6f:41d2]:6443
 domain: k8s.dorn.haus
+cniConfig:
+  name: none
+additionalApiServerCertSans: &sans
+  - "::"
+additionalMachineCertSans: *sans
 allowSchedulingOnControlPlanes: true
 
 nodes:
@@ -21,12 +26,25 @@ nodes:
     networkInterfaces:
       - deviceSelector:
           hardwareAddr: "ec:8e:b5:6f:41:d2"
-        dhcp: false
-        addresses:
-          - 192.168.1.8/24
+        # TODO: Remove DHCP when possible.
+        dhcp: true
 
 patches:
   - |-
+    cluster:
+      network:
+        podSubnets:
+          - fd10:244::/64
+        serviceSubnets:
+          - fd10:96::/108
+      proxy:
+        disabled: true
+      controllerManager:
+        extraArgs:
+          bind-address: "::"
+      scheduler:
+          extraArgs:
+            bind-address: "::"
     machine:
       time:
         servers:

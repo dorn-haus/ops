@@ -22,13 +22,14 @@ tasks:
       - task: bootstrap-apply
       - task: bootstrap-install
       - task: fetch-kubeconfig
+      - task: bootstrap-apps
       - talosctl health --server=false
 
   bootstrap-gensecret:
     desc: Generate Talos secrets
     dir: "{{.TALOS_DIR}}"
     cmds:
-      - talhelper gensecret --from-configfile ~/repos/my/lab/dh8/talos/controlplane.yaml > {{.TALHELPER_SECRET_FILE}}
+      - talhelper gensecret > {{.TALHELPER_SECRET_FILE}}
       - task: :sops:.encrypt-file
         vars:
           file: "{{.TALHELPER_SECRET_FILE}}"
@@ -61,11 +62,12 @@ tasks:
     preconditions:
       - { msg: "Missing talhelper config file", sh: "test -f {{.TALHELPER_CONFIG_FILE}}" }
 
-  install-apps:
+  bootstrap-apps:
     desc: Bootstrap core apps
     dir: "{{.TALOS_DIR}}"
     cmds:
-      - until kubectl wait --for=condition=Ready nodes --all --timeout=600s; do sleep 2; done
+      # The node is not expected to be Ready=true state since CNI is disabled.
+      - until kubectl wait --for=condition=Ready=false nodes --all --timeout=600s; do sleep 2; done
       - helmfile --file apps/helmfile.yaml apply --skip-diff-on-install --suppress-diff
       - until kubectl wait --for=condition=Ready nodes --all --timeout=600s; do sleep 2; done
     preconditions:
