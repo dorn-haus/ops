@@ -26,10 +26,6 @@ nodes:
           - 192.168.1.8/24
           - 2001:171b:c9b8:8d40:ee8e:b5ff:fe6f:41d2/64
           - fdaa:bbcc:ddee:0:ee8e:b5ff:fe6f:41d2/64
-        routes:
-          - network: ::/0
-            # MAC 90:4D:4A:CC:EF:8B → LL IPv6
-            gateway: fe80::924d:4aff:fecc:ef8b
 
 patches:
   - |-
