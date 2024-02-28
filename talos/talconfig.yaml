@@ -25,9 +25,8 @@ nodes:
       - 2001:4860:4860::8888
     networkInterfaces:
       - deviceSelector:
-          hardwareAddr: "ec:8e:b5:6f:41:d2"
-        # TODO: Remove DHCP when possible.
-        dhcp: true
+          hardwareAddr: "*"
+        dhcp: false
 
 patches:
   - |-

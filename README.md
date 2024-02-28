@@ -49,6 +49,12 @@ At least the following workarounds are necessary:
   https://github.com/docker/roadmap/issues/89#issuecomment-772644009. At the
   time of writing, `mirror.gcr.io` seems to be a good alternative.
 
+For Talos, an easy workaround is to enable DHCP during boot and upgrades (or
+give the nodes a static IPv4 address and route). SLAAC will still be used for
+configuring IPv6 addresses. Once the node is healthy and Cilium is configured,
+disable DHCP or remove any manually assigned IPv4 addresses, and the node
+should remain operational.
+
 ## 🚧 Under Construction
 
 There is an existing repository where I already have most of these configs,
