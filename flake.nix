@@ -5,8 +5,8 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     # renovate: datasource=github-releases depName=numtide/flake-utils
     flake-utils.url = "github:numtide/flake-utils/v1.0.0";
-    # renovate: datasource=github-releases depName=budimanjojo/talhelper
-    talhelper.url = "github:budimanjojo/talhelper/v2.3.1";
+    # TODO: pin when https://github.com/budimanjojo/talhelper/pull/353 is released.
+    talhelper.url = "github:budimanjojo/talhelper";
   };
 
   outputs = { self, nixpkgs, flake-utils, talhelper, ... }:
