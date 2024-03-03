@@ -4,8 +4,8 @@ clusterName: &cluster dh8
 talosVersion: v1.6.5
 # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
 kubernetesVersion: v1.29.2
-endpoint: https://[2001:171b:c9b8:8d40:ee8e:b5ff:fe6f:41d2]:6443
-domain: k8s.dorn.haus
+endpoint: https://192.168.8.1:6443
+domain: dorn.haus
 cniConfig:
   name: none
 additionalApiServerCertSans: &sans
@@ -14,37 +14,43 @@ additionalMachineCertSans: *sans
 allowSchedulingOnControlPlanes: true
 
 nodes:
-  - hostname: 01.k8s.dorn.haus
+  - hostname: k8s-01
     installDisk: /dev/sda
     controlPlane: true
-    ipAddress: 2001:171b:c9b8:8d40:ee8e:b5ff:fe6f:41d2
+    ipAddress: fd10:8::1
     nameservers:
+      - 1.0.0.1
+      - 8.8.4.4
       - 2606:4700:4700::1001
       - 2001:4860:4860::8844
-      - 2606:4700:4700::1111
-      - 2001:4860:4860::8888
     networkInterfaces:
       - deviceSelector:
           hardwareAddr: "*"
-        dhcp: false
+        dhcp: true
+        mtu: 1500
 
 patches:
   - |-
     cluster:
       network:
         podSubnets:
+          # IPv6-only:
           - fd10:244::/64
         serviceSubnets:
+          # IPv6-only:
           - fd10:96::/108
       proxy:
         disabled: true
       controllerManager:
         extraArgs:
+          # Prefer IPv6:
           bind-address: "::"
       scheduler:
           extraArgs:
+            # Prefer IPv6:
             bind-address: "::"
     machine:
       time:
         servers:
+        # IPv6-enabled:
         - time.cloudflare.com
