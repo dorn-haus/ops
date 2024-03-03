@@ -23,7 +23,7 @@ considerations:
 
 ## 6️⃣ IPv6-only networking
 
-Enabling IPv6 tends to work just fine. Disabling IPv4 (as much as possible) is
+While enabling IPv6 works just fine, disabling IPv4 (as much as possible) is
 when things start to go south. There are a surprising number of popular
 domains, for example, that don't seem to have AAAA records yet. *I know, WTF,
 right?*
