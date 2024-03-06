@@ -6,11 +6,8 @@
 
 This repository contains Infrastructure as Code (IaC) and GitOps config files
 for managing my hobby cluster in the basement. Inspired by popular repos like
-[toboshii/home-ops] and [Euvaz/GitOps-Home], with a few addicional
-considerations:
+[toboshii/home-ops], with a few addicional considerations:
 
-[toboshii/home-ops]: https://github.com/toboshii/home-ops
-[Euvaz/GitOps-Home]: https://github.com/Euvaz/GitOps-Home
 
 - **🛠️ Unconventional hardware:** As much as I enjoy automating the software
   infrastructure, I also really like building custom hardware to power it all.
@@ -21,30 +18,44 @@ considerations:
 - **6️⃣ IPv6 networking:** The goal is to manage the entire cluster via IPv6, and
   maybe one day disable IPv4 networking entirely.
 
-## 6️⃣ IPv6-only networking
+## 6️⃣ IPv6 networking
 
-While enabling IPv6 works just fine, disabling IPv4 (as much as possible) is
-when things start to go south. There are a surprising number of popular
-domains, for example, that don't seem to have AAAA records yet. *I know, WTF,
-right?*
+Currently the machines in the cluster are connected to to the router that
+Swisscom provides us, through cheap 10 Gbps switches that only do L2
+forwarding. This router advertises two IPv6 prefixes:
 
-At least the following workarounds are necessary:
+- A `scope global`, `dynamic` prefix that belongs to the `2000::/3` range.
+- A ULA prefix in the `fd00::/8` range. This appears to be the prefix
+  `fdaa:bbcc:ddee:0/64` on these modems, and it seems to be static. As a
+  consequence, I can calculate IPv6 addresses in this range that the hosts will
+  configure for themselves using SLAAC, just by knowing the MAC address of the
+  interfaces.
 
-- **Time Servers**: `time.cloudflare.com` is a decent alternative that supports
-  IPv6.
-- **DNS (nameservers)**: Again Cloudflare provides fast public IPv6 nameservers:
-  `2606:4700:4700::1001` and `2606:4700:4700::1111`.
-- **Container registries**: There is a nice summary this comment:
-  https://github.com/docker/roadmap/issues/89#issuecomment-772644009. At the
-  time of writing, `mirror.gcr.io` seems to be a good alternative.
+For the current setup, I'm using these link-local addresses for managing the
+hosts, and IPv6 pinholing to access the load balancers from the outside.
+CloudFlare sits in front of the load balancers; they conveniently provide IPv4
+reachability.
 
-For Talos, an easy workaround is to enable DHCP during boot and upgrades (or
-give the nodes a static IPv4 address and route). SLAAC will still be used for
-configuring IPv6 addresses. Once the node is healthy and Cilium is configured,
-disable DHCP or remove any manually assigned IPv4 addresses, and the node
-should remain operational.
+For the service and pod subnets, I'm using IPv6 only networks:
 
-##  🧑‍💻️ Dev/Ops
+- `fd10:96::/108` in place of the usual `10.96.0.0/12` service subnet.
+- `fd10:244::/64` in place of the usual `10.244.0.0/16` pod subnet.
+
+Currently `pool.ntp.org` has no AAAA records, so I'm using
+`time.cloudflare.com` for time servers.
+
+For DNS I'm using the usual public servers:
+
+- `2001:4860:4860::8844` / `8.8.4.4` (Google 1)
+- `2001:4860:4860::8888` / `8.8.8.8` (Google 2)
+- `2606:4700:4700::1001` / `1.0.0.1` (CloudFlare 1)
+- `2606:4700:4700::1111` / `1.1.1.1` (CloudFlare 2)
+
+Some container registries currently don't have AAAA records either. For the
+moment I haven't bothered setting up a local mirror. There is a nice summary
+[in this comment](https://github.com/docker/roadmap/issues/89#issuecomment-772644009).
+
+## 🧑‍💻️ Dev/Ops
 
 The easiest way to get the required dependencies is to have `nix` and `direnv`
 configured. Entering the repo will execute the [`.envrc` file], which in turn
@@ -54,6 +65,16 @@ will `use flake` to pull in dependencies from the `flake.nix` file.
 
 Without `direnv`, one would need to manually run `nix develop` to enter the
 development shell.
+
+## 💡 Inspiration
+
+Much of this was inspired by a number of similar repos:
+
+- [Euvaz/GitOps-Home]
+- [toboshii/home-ops]
+
+[Euvaz/GitOps-Home]: https://github.com/Euvaz/GitOps-Home
+[toboshii/home-ops]: https://github.com/toboshii/home-ops
 
 ## 🚧 Under Construction
 
