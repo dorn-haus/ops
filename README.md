@@ -25,11 +25,8 @@ Swisscom provides us, through cheap 10 Gbps switches that only do L2
 forwarding. This router advertises two IPv6 prefixes:
 
 - A `scope global`, `dynamic` prefix that belongs to the `2000::/3` range.
-- A ULA prefix in the `fd00::/8` range. This appears to be the prefix
-  `fdaa:bbcc:ddee:0/64` on these modems, and it seems to be static. As a
-  consequence, I can calculate IPv6 addresses in this range that the hosts will
-  configure for themselves using SLAAC, just by knowing the MAC address of the
-  interfaces.
+- A `scope global` static prefix in the `fd00::/8` range. This appears to be the prefix
+  `fdaa:bbcc:ddee:0/64` on these modems. I'll be using these IPs for managing the hosts.
 
 For the current setup, I'm using these link-local addresses for managing the
 hosts, and IPv6 pinholing to access the load balancers from the outside.
