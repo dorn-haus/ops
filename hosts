@@ -1,0 +1,13 @@
+# Jump host:
+fdaa:bbcc:ddee:0:bc82:6d31:8e7b:8e03 jh jh.dorn.haus
+
+# K8S cluster cp nodes:
+fdaa:bbcc:ddee::ee8e:b5ff:fe6f:41d2 k8s-01 k8s-01.dorn.haus
+fdaa:bbcc:ddee::468a:5bff:feca:9618 k8s-06 k8s-06.dorn.haus
+fdaa:bbcc:ddee::4637:e6ff:fe56:600e k8s-07 k8s-07.dorn.haus
+
+# K8S cluster worker nodes:
+fdaa:bbcc:ddee::0280:64ff:fee7:830c k8s-02 k8s-02.dorn.haus
+fdaa:bbcc:ddee::9e8e:99ff:fee6:48e0 k8s-03 k8s-03.dorn.haus
+fdaa:bbcc:ddee::028c:faff:fed1:df1d k8s-04 k8s-04.dorn.haus
+fdaa:bbcc:ddee::028c:faff:fed3:d056 k8s-05 k8s-05.dorn.haus
