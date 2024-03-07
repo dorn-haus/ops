@@ -1,4 +1,10 @@
 creation_rules:
-- age: >-
-    age10svcxhp982lemvu7xxnvmqtmuxemyjt5qh9k0qw38e9j694vyd5shsn3ym
-
+  - path_regex: talos/.*\.sops\.ya?ml
+    key_groups:
+      - age:
+        - age10svcxhp982lemvu7xxnvmqtmuxemyjt5qh9k0qw38e9j694vyd5shsn3ym
+  - path_regex: k8s/.*\.sops\.ya?ml
+    encrypted_regex: "^stringData$"
+    key_groups:
+      - age:
+        - age10svcxhp982lemvu7xxnvmqtmuxemyjt5qh9k0qw38e9j694vyd5shsn3ym

@@ -22,6 +22,7 @@
             (pkgs.wrapHelm pkgs.kubernetes-helm { plugins = [ pkgs.kubernetes-helmPlugins.helm-diff ]; })
             (talhelper.packages.${system}.default)
             age
+            fluxcd
             go-task
             helmfile
             kubectl

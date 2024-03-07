@@ -3,6 +3,7 @@ version: 3
 
 vars:
   AGE_FILE: "{{.ROOT_DIR}}/age.key"
+  K8S_DIR: "{{.ROOT_DIR}}/k8s"
   KUBECONFIG_FILE: "{{.ROOT_DIR}}/kubeconfig"
   TALOSCONFIG_FILE: "{{.ROOT_DIR}}/talos/clusterconfig/talosconfig)"
 
@@ -14,3 +15,4 @@ env:
 includes:
   sops: .taskfiles/Sops/Taskfile.yaml
   talos: .taskfiles/Talos/Taskfile.yaml
+  flux: .taskfiles/Flux/Taskfile.yaml
