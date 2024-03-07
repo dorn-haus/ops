@@ -7,4 +7,3 @@ metadata:
 data:
   TIMEZONE: UTC
   CLUSTER_CIDR_V6: fd10:244::/64
-  NODE_CIDR: 2001:171b:c9b8:8d40::/60
