@@ -2,7 +2,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
-  name: dh8
+  name: ops
   namespace: flux-system
 spec:
   interval: 30m
@@ -10,10 +10,12 @@ spec:
   ref:
     branch: main
   ignore: |
-    # exclude all
+    # ignore all
     /*
     # include kubernetes directory
     !/k8s
+    # ignore kubernetes bootstrap files
+    /k8s/flux/bootstrap/*
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -22,7 +24,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 30m
-  path: ./kubernetes/flux
+  path: ./k8s/flux
   prune: true
   wait: false
   sourceRef:
