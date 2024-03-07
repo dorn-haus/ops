@@ -5,5 +5,4 @@ metadata:
   name: cluster-settings
   namespace: flux-system
 data:
-  TIMEZONE: UTC
-  CLUSTER_CIDR_V6: fd10:244::/64
+  TEST: Nothing to see here, move on.
