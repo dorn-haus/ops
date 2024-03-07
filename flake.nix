@@ -27,6 +27,7 @@
             kubectl
             sops
             talosctl
+            yq
           ];
         };
       });

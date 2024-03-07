@@ -10,6 +10,7 @@ cniConfig:
   name: none
 additionalApiServerCertSans: &sans
   - "::"
+  - "::1"  # TODO: Is this really necessary?
 additionalMachineCertSans: *sans
 allowSchedulingOnControlPlanes: true
 
@@ -17,17 +18,15 @@ nodes:
   - hostname: k8s-01
     installDisk: /dev/sda
     controlPlane: true
-    ipAddress: fd10:8::1
-    nameservers:
-      - 1.0.0.1
-      - 8.8.4.4
-      - 2606:4700:4700::1001
-      - 2001:4860:4860::8844
-    networkInterfaces:
-      - deviceSelector:
-          hardwareAddr: "*"
-        dhcp: true
-        mtu: 1500
+    ipAddress: 192.168.8.1
+  - hostname: k8s-06
+    installDisk: /dev/sda
+    controlPlane: true
+    ipAddress: 192.168.8.6
+  - hostname: k8s-07
+    installDisk: /dev/sda
+    controlPlane: true
+    ipAddress: 192.168.8.7
 
 patches:
   - |-
@@ -54,3 +53,9 @@ patches:
         servers:
         # IPv6-enabled:
         - time.cloudflare.com
+      network:
+        nameservers:
+          - 2606:4700:4700::1001
+          - 2001:4860:4860::8844
+          - 1.0.0.1
+          - 8.8.4.4
