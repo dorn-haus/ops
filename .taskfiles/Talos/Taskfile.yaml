@@ -19,7 +19,6 @@ tasks:
       - task: bootstrap-genconfig
       - task: bootstrap-apply
         vars:
-          config_variant: .dhcp
           extra_flags: --insecure
       - task: bootstrap-install
       - task: fetch-kubeconfig
@@ -44,16 +43,15 @@ tasks:
     desc: Generate Talos configs
     dir: "{{.TALOS_DIR}}"
     cmds:
+      - rm -rf clusterconfig
       - talhelper genconfig
-      - rm -f clusterconfig/*.dhcp.yaml
-      - 'for file in clusterconfig/*.yaml; do sed "s/dhcp: false/dhcp: true/g" "${file}" > "${file%.yaml}.dhcp.yaml"; done'
     preconditions:
       - { msg: "Missing talhelper config file", sh: "test -f {{.TALHELPER_CONFIG_FILE}}" }
 
   bootstrap-apply:
     desc: Apply Talos config
     dir: "{{.TALOS_DIR}}"
-    cmd: talhelper gencommand apply --extra-flags={{.extra_flags}} | sed s/\.yaml/{{.config_variant}}.yaml/g | bash
+    cmd: talhelper gencommand apply --extra-flags={{.extra_flags}} | bash
     preconditions:
       - { msg: "Missing talhelper config file", sh: "test -f {{.TALHELPER_CONFIG_FILE}}" }
 
