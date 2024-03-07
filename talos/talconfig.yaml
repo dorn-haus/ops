@@ -9,7 +9,8 @@ domain: dorn.haus
 cniConfig:
   name: none
 additionalApiServerCertSans: &sans
-  - "::1"
+  - "::"  # api-server
+  - "::1" # controller-manager, scheduler
 additionalMachineCertSans: *sans
 allowSchedulingOnControlPlanes: true
 
@@ -41,13 +42,19 @@ patches:
         # Disable kube-proxy, since we're using
         # Cilium's kube-proxy replacement functionality.
         disabled: true
+      apiServer:
+        extraArgs:
+          # Prefer IPv6 all interfaces.
+          # TODO: Set up firewall rules to make sure this is not accessible
+          # through the external interfaces (via the IPv6 pinholing setup.)
+          bind-address: "::"
       controllerManager:
         extraArgs:
-          # Prefer IPv6:
+          # Prefer IPv6 loopback:
           bind-address: "::1"
       scheduler:
           extraArgs:
-            # Prefer IPv6:
+            # Prefer IPv6 loopback:
             bind-address: "::1"
     machine:
       time:

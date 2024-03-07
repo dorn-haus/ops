@@ -22,10 +22,13 @@ ipv4:
   enabled: false
 ipv6:
   enabled: true
+# This should really be 2000::/3.
+# However, Sunrise uses Teredo tunelling, so this works too.
 ipv6NativeRoutingCIDR: "2001::/32"
 k8sServiceHost: "::"
 k8sServicePort: 7445
 kubeProxyReplacement: true
+# Export metrics on all IPv6 addresses.
 kubeProxyReplacementHealthzBindAddr: "[::]:10256"
 l2announcements:
   enabled: false # https://github.com/cilium/cilium/issues/28985
