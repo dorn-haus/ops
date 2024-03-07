@@ -4,7 +4,7 @@ clusterName: &cluster dh8
 talosVersion: v1.6.5
 # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
 kubernetesVersion: v1.29.2
-endpoint: https://192.168.8.1:6443
+endpoint: https://[fdaa:bbcc:ddee::ee8e:b5ff:fe6f:41d2]:6443
 domain: dorn.haus
 cniConfig:
   name: none
@@ -18,15 +18,15 @@ nodes:
   - hostname: k8s-01
     installDisk: /dev/sda
     controlPlane: true
-    ipAddress: 192.168.8.1
+    ipAddress: fdaa:bbcc:ddee::ee8e:b5ff:fe6f:41d2
   - hostname: k8s-06
     installDisk: /dev/sda
     controlPlane: true
-    ipAddress: 192.168.8.6
+    ipAddress: fdaa:bbcc:ddee::468a:5bff:feca:9618
   - hostname: k8s-07
     installDisk: /dev/sda
     controlPlane: true
-    ipAddress: 192.168.8.7
+    ipAddress: fdaa:bbcc:ddee::4637:e6ff:fe56:600e
 
 patches:
   - |-
