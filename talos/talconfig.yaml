@@ -67,3 +67,16 @@ patches:
           - 2001:4860:4860::8844
           - 1.0.0.1
           - 8.8.4.4
+        extraHostEntries:
+          - ip: fdaa:bbcc:ddee::ee8e:b5ff:fe6f:41d2
+            aliases:
+              - k8s-01
+              - k8s-01.dorn.haus
+          - ip: fdaa:bbcc:ddee::468a:5bff:feca:9618
+            aliases:
+              - k8s-06
+              - k8s-06.dorn.haus
+          - ip: fdaa:bbcc:ddee::4637:e6ff:fe56:600e
+            aliases:
+              - k8s-07
+              - k8s-07.dorn.haus
