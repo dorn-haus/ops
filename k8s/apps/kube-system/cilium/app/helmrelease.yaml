@@ -25,12 +25,10 @@ spec:
   values:
     # TODO: Merge from //talos/apps/cilium-values.yaml.
     autoDirectNodeRoutes: true
-    bpf:
-      masquerade: true
-    ipMasqAgent:
-      enabled: true
     bgpControlPlane:
       enabled: false
+    bpf:
+      masquerade: false
     cgroup:
       automount:
         enabled: false
@@ -47,13 +45,11 @@ spec:
     ipam:
       mode: kubernetes
     ipv4:
-      # IPv4 needed to reach github.com and ghcr.io,
-      # required by Flux in order to pull repo changes.
-      # https://github.com/orgs/community/discussions/10539
-      enabled: true
+      enabled: false
     ipv6:
       enabled: true
-    ipv4NativeRoutingCidr: 10.244.0.0/16
+    # This should really be 2000::/3.
+    # However, Sunrise uses Teredo tunelling, so this works too.
     ipv6NativeRoutingCIDR: fd10:244::/64
     k8sServiceHost: "::"
     k8sServicePort: 7445
