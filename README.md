@@ -21,22 +21,24 @@ for managing my hobby cluster in the basement. Inspired by popular repos like
 ## 6️⃣ IPv6 networking
 
 Currently the machines in the cluster are connected to to the router that
-Swisscom provides us, through cheap 10 Gbps switches that only do L2
+Swisscom provides us, through cheap 1 Gbps switches that only do L2
 forwarding. This router advertises two IPv6 prefixes:
 
 - A `scope global`, `dynamic` prefix that belongs to the `2000::/3` range.
 - A `scope global` static prefix in the `fd00::/8` range. This appears to be the prefix
-  `fdaa:bbcc:ddee:0/64` on these modems. I'll be using these IPs for managing the hosts.
+  `fdaa:bbcc:ddee:0/64` on these modems.
 
-For the current setup, I'm using these link-local addresses for managing the
-hosts, and IPv6 pinholing to access the load balancers from the outside.
-CloudFlare sits in front of the load balancers; they conveniently provide IPv4
-reachability.
+For the initial OS bootstrap, I'm using the auto-configured addresses. Once I can talk to the machines, I'm giving them static IPs in the `fd10:8::/64` range.
 
-For the service and pod subnets, I'm using dual stack IPv6/IPv4 networks:
+TODO: Configure `radvd` on the jumphost?
 
-- `fd10:96::/108` in addition to the usual `10.96.0.0/12` service subnet.
-- `fd10:244::/64` in addition to the usual `10.244.0.0/16` pod subnet.
+The router has IPv6 pinholing configured to access the load balancers from the outside.
+Cloudflare sits in front of the them and provides IPv4 connectivity.
+
+For the service and pod subnets, I'm using IPv6-only networks too:
+
+- `fd10:96::/108` in place of the usual `10.96.0.0/12` service subnet.
+- `fd10:244::/64` in place of the usual `10.244.0.0/16` pod subnet.
 
 Currently `pool.ntp.org` has no AAAA records, so I'm using
 `time.cloudflare.com` for time servers.
@@ -48,21 +50,12 @@ For DNS I'm using the usual public servers:
 - `2606:4700:4700::1001` / `1.0.0.1` (CloudFlare 1)
 - `2606:4700:4700::1111` / `1.1.1.1` (CloudFlare 2)
 
-Some container registries currently don't have AAAA records either. For the
-moment I haven't bothered setting up a local mirror. There is a nice summary
-[in this comment](https://github.com/docker/roadmap/issues/89#issuecomment-772644009).
+Some container registries currently don't have AAAA records either. To pull container images, I have a Squid caching proxy on the same jumphost that provides VPN management access.
 
 Additionally, GitHub.com also doesn't have AAAA records as of now. This means
-Flux CD cannot pull updates or really, function at all. At the very least pods
-in the `flux-system` namespace need an IPv4 route to the public internet.
+Flux CD cannot pull updates. As a workaround I'm hosting [a mirror of this repo][2] on GitLab.
 
-On top of all that, even reaching the cluster via IPv6 from behind nested NAT
-is challenging, since my ISP's modem [doesn't do prefix delegation][1], so I'm
-behind double-NAT with a brittle DHCP-reservation and port-forwarding chain
-setup to allow me to set up a WireGuard tunnel. I still can't reach the nodes'
-link-local addresses though.
-
-[1]: https://community.sunrise.ch/d/33972-eigener-router-hinter-connect-box-3-via-ipv6
+[2]: https://gitlab.com/attilaolah/dh8
 
 ## 🧑‍💻️ Dev/Ops
 
