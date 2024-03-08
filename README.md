@@ -33,10 +33,10 @@ hosts, and IPv6 pinholing to access the load balancers from the outside.
 CloudFlare sits in front of the load balancers; they conveniently provide IPv4
 reachability.
 
-For the service and pod subnets, I'm using IPv6 only networks:
+For the service and pod subnets, I'm using dual stack IPv6/IPv4 networks:
 
-- `fd10:96::/108` in place of the usual `10.96.0.0/12` service subnet.
-- `fd10:244::/64` in place of the usual `10.244.0.0/16` pod subnet.
+- `fd10:96::/108` in addition to the usual `10.96.0.0/12` service subnet.
+- `fd10:244::/64` in addition to the usual `10.244.0.0/16` pod subnet.
 
 Currently `pool.ntp.org` has no AAAA records, so I'm using
 `time.cloudflare.com` for time servers.
@@ -51,6 +51,18 @@ For DNS I'm using the usual public servers:
 Some container registries currently don't have AAAA records either. For the
 moment I haven't bothered setting up a local mirror. There is a nice summary
 [in this comment](https://github.com/docker/roadmap/issues/89#issuecomment-772644009).
+
+Additionally, GitHub.com also doesn't have AAAA records as of now. This means
+Flux CD cannot pull updates or really, function at all. At the very least pods
+in the `flux-system` namespace need an IPv4 route to the public internet.
+
+On top of all that, even reaching the cluster via IPv6 from behind nested NAT
+is challenging, since my ISP's modem [doesn't do prefix delegation][1], so I'm
+behind double-NAT with a brittle DHCP-reservation and port-forwarding chain
+setup to allow me to set up a WireGuard tunnel. I still can't reach the nodes'
+link-local addresses though.
+
+[1]: https://community.sunrise.ch/d/33972-eigener-router-hinter-connect-box-3-via-ipv6
 
 ## 🧑‍💻️ Dev/Ops
 
