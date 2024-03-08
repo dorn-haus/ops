@@ -33,8 +33,12 @@ patches:
     cluster:
       network:
         podSubnets:
-          # IPv6-only:
+          # IPv6:
           - fd10:244::/64
+          # IPv4 to reach github.com and ghcr.io.
+          # Required by Flux in order to pull repo changes.
+          # https://github.com/orgs/community/discussions/10539
+          - 10.244.0.0/16
         serviceSubnets:
           # IPv6-only:
           - fd10:96::/108
