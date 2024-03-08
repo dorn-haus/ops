@@ -28,7 +28,7 @@ tasks:
     desc: Bootstrap Flux into the cluster
     cmds:
       - kubectl apply --server-side --kustomize {{.K8S_DIR}}/flux/bootstrap
-      - cat {{.AGE_FILE}} | kubectl --namespace flux-system create secret generic sops-age --from-file=age.agekey=/dev/stdin
+      - cat {{.AGE_FILE}} | kubectl --namespace flux-system create secret generic sops-age --from-file=age.agekey=/dev/stdin --dry-run=client -o yaml --save-config | kubectl apply -f -
       - sops --decrypt {{.CLUSTER_SECRET_SOPS_FILE}} | kubectl apply --server-side --filename -
       - kubectl apply --server-side --filename {{.CLUSTER_SETTINGS_FILE}}
       - kubectl apply --server-side --kustomize {{.K8S_DIR}}/flux/config
