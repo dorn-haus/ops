@@ -2,11 +2,11 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
-  name: ops
+  name: gitlab-dh8
   namespace: flux-system
 spec:
   interval: 30m
-  url: https://github.com/attilaolah/ops
+  url: https://gitlab.com/attilaolah/dh8
   ref:
     branch: main
   ignore: |
@@ -29,7 +29,7 @@ spec:
   wait: false
   sourceRef:
     kind: GitRepository
-    name: ops
+    name: gitlab-dh8
   decryption:
     provider: sops
     secretRef:
