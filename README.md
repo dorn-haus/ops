@@ -1,6 +1,6 @@
 # Home K8s Cluster
 
-> Home IPv6-friendly Flux-managed K8s cluster on Talos+Alpine.
+> Home IPv6-only Flux-managed K8s cluster on Talos+Alpine.
 
 ## 📖 Overview
 
@@ -15,8 +15,7 @@ for managing my hobby cluster in the basement. Inspired by popular repos like
   using 🪚🪛 power tools.
 - **🌳 Low footprint:** All of the nodes are either old machines I am no longer
   using, or used machines I bought for very cheap. Many use passive cooling.
-- **6️⃣ IPv6 networking:** The goal is to manage the entire cluster via IPv6, and
-  maybe one day disable IPv4 networking entirely.
+- **6️⃣ IPv6-only networking:** The cluster itself does not use IPv4, except for the jumphost server. Outbound IPv4 connections go through a Squid HTTP proxy that can reach IPv4 hosts.
 
 ## 6️⃣ IPv6 networking
 
