@@ -25,10 +25,12 @@ spec:
   values:
     # TODO: Merge from //talos/apps/cilium-values.yaml.
     autoDirectNodeRoutes: true
-    bgpControlPlane:
-      enabled: true
     bpf:
-      masquerade: false
+      masquerade: true
+    ipMasqAgent:
+      enabled: true
+    bgpControlPlane:
+      enabled: false
     cgroup:
       automount:
         enabled: false

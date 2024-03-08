@@ -1,9 +1,11 @@
 # Set up routes for addresses in the native-routing-cidr range.
 autoDirectNodeRoutes: true
-bgpControlPlane:
-  enabled: true
 bpf:
-  masquerade: false
+  masquerade: true
+ipMasqAgent:
+  enabled: true
+bgpControlPlane:
+  enabled: false
 cgroup:
   automount:
     enabled: false
