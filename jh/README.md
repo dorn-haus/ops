@@ -6,6 +6,7 @@ following services:
 - SSH server, for maintenance.
 - WireGuard server, to provide IPv6 access from IPv4-only networks.
 - Squid server, to provide access to IPv4-only container registries.
+- RADVD server, to advertise the ULA prefix on the local network.
 
 ## WireGuard config
 
