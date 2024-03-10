@@ -4,7 +4,7 @@ clusterName: dh8
 talosVersion: v1.6.5
 # renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
 kubernetesVersion: v1.29.2
-endpoint: https://[fd10:8::1]:6443
+endpoint: https://[fd10:8::ee8e:b5ff:fe6f:41d2]:6443
 domain: dorn.haus
 cniConfig:
   name: none
@@ -18,38 +18,26 @@ nodes:
   - hostname: k8s-01
     installDisk: /dev/sda
     controlPlane: true
-    ipAddress: fd10:8::1
+    ipAddress: fd10:8::ee8e:b5ff:fe6f:41d2
     networkInterfaces:
     - deviceSelector:
         hardwareAddr: "*"
-      addresses:
-        - fd10:8::1/64
-      routes:
-        - network: fd10:8::/64
       dhcp: false
   - hostname: k8s-06
     installDisk: /dev/sda
     controlPlane: true
-    ipAddress: fd10:8::6
+    ipAddress: fd10:8::468a:5bff:feca:9618
     networkInterfaces:
     - deviceSelector:
         hardwareAddr: "*"
-      addresses:
-        - fd10:8::6/64
-      routes:
-        - network: fd10:8::/64
       dhcp: false
   - hostname: k8s-07
     installDisk: /dev/sda
     controlPlane: true
-    ipAddress: fd10:8::7
+    ipAddress: fd10:8::4637:e6ff:fe56:600e
     networkInterfaces:
     - deviceSelector:
         hardwareAddr: "*"
-      addresses:
-        - fd10:8::7/64
-      routes:
-        - network: fd10:8::/64
       dhcp: false
 
 patches:
@@ -90,10 +78,17 @@ patches:
           - 2606:4700:4700::1001
           - 2001:4860:4860::8844
         extraHostEntries:
-          - ip: fd10:8::1:1
+          - ip: fd10:8::ba27:ebff:fe69:d702
             aliases:
               - jh
               - jh.dorn.haus
+      # Prevent the kubelet from using any other address range.
+      # Otherwise the kubelet might pick the auto-configured ::ffff:0:0/96
+      # range, which has no routes configured.
+      kubelet:
+        nodeIP:
+          validSubnets:
+            - fd10:8::/64
       env:
         http_proxy: &proxy "jh:3128"
         https_proxy: *proxy
