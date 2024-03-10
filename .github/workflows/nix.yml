@@ -10,17 +10,10 @@ on:
 
 jobs:
   check:
-    runs-on: namespace-profile-default
+    runs-on: namespace-profile-ubuntu-nix
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Install Nix
-        uses: cachix/install-nix-action@v26
-        with:
-          install_url: https://nixos.org/nix/install
-          extra_nix_config: |
-            auto-optimise-store = true
-            experimental-features = nix-command flakes
       - name: Check Nix flake
         run: nix flake check
