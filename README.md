@@ -15,7 +15,11 @@ for managing my hobby cluster in the basement. Inspired by popular repos like
   using 🪚🪛 power tools.
 - **🌳 Low footprint:** All of the nodes are either old machines I am no longer
   using, or used machines I bought for very cheap. Many use passive cooling.
-- **6️⃣ IPv6-only networking:** The cluster itself does not use IPv4, except for the jumphost server. Outbound IPv4 connections go through a Squid HTTP proxy that can reach IPv4 hosts.
+- **6️⃣ IPv6-only networking:** The cluster itself does not use IPv4, except for
+  [the bastion server][bastion] (jump host). Outbound IPv4 connections go
+  through a Squid HTTP proxy that can reach IPv4 hosts.
+
+[bastion]: https://github.com/dorn-haus/8/tree/main/bastion
 
 ## 6️⃣ IPv6 networking
 
@@ -27,9 +31,9 @@ forwarding. This router advertises two IPv6 prefixes:
 - A `scope global` static prefix in the `fd00::/8` range. This appears to be the prefix
   `fdaa:bbcc:ddee:0/64` on these modems.
 
-For the initial OS bootstrap, I'm using the auto-configured addresses. Once I can talk to the machines, I'm giving them static IPs in the `fd10:8::/64` range.
-
-TODO: Configure `radvd` on the jumphost?
+The Bastion server runs `radvd` and advertises the `fd10:8::/64` prefix. This
+gives deterministic addresses that I can use for bootstrapping and addressing
+kubelets. This way no static IPs need to be configured.
 
 The router has IPv6 pinholing configured to access the load balancers from the outside.
 Cloudflare sits in front of the them and provides IPv4 connectivity.
@@ -49,10 +53,13 @@ For DNS I'm using the usual public servers:
 - `2606:4700:4700::1001` / `1.0.0.1` (CloudFlare 1)
 - `2606:4700:4700::1111` / `1.1.1.1` (CloudFlare 2)
 
-Some container registries currently don't have AAAA records either. To pull container images, I have a Squid caching proxy on the same jumphost that provides VPN management access.
+Some container registries currently don't have AAAA records either. To pull
+container images, nodes have to go through a Squid caching proxy on the
+bastion.
 
 Additionally, GitHub.com also doesn't have AAAA records as of now. This means
-Flux CD cannot pull updates. As a workaround I'm hosting [a mirror of this repo][2] on GitLab.
+Flux CD cannot pull updates. As a workaround I'm hosting [a mirror of this
+repo][2] on GitLab.
 
 [2]: https://gitlab.com/attilaolah/dh8
 

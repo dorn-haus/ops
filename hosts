@@ -1,5 +1,5 @@
-# Jump host:
-fd10:8::bc82:6d31:8e7b:8e03 jh jh.dorn.haus
+# Bastion (jump host):
+fd10:8::bc82:6d31:8e7b:8e03 bastion bastion.dorn.haus
 
 # K8S Talos nodes:
 fd10:8::ee8e:b5ff:fe6f:41d2 k8s-01 k8s-01.dorn.haus

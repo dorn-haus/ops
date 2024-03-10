@@ -80,8 +80,8 @@ patches:
         extraHostEntries:
           - ip: fd10:8::ba27:ebff:fe69:d702
             aliases:
-              - jh
-              - jh.dorn.haus
+              - bastion
+              - bastion.dorn.haus
       # Prevent the kubelet from using any other address range.
       # Otherwise the kubelet might pick the auto-configured ::ffff:0:0/96
       # range, which has no routes configured.
@@ -90,5 +90,5 @@ patches:
           validSubnets:
             - fd10:8::/64
       env:
-        http_proxy: &proxy "jh:3128"
+        http_proxy: &proxy "bastion:3128"
         https_proxy: *proxy
