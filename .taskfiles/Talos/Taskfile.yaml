@@ -63,6 +63,16 @@ tasks:
     preconditions:
       - { msg: "Missing kubeconfig", sh: "test -f {{.KUBECONFIG_FILE}}" }
 
+  fetch-kubeconfig:
+    desc: Fetch Talos K8s kubeconfig file
+    dir: "{{.TALOS_DIR}}"
+    cmd: |
+      until talhelper \
+          --config-file $TALCONFIG \
+          --extra-flags "--force" \
+        gencommand kubeconfig \
+      | bash; do sleep 10; done
+
   apply:
     desc: Apply Talos config to all nodes
     dir: "{{.TALOS_DIR}}"
@@ -75,6 +85,31 @@ tasks:
       task: apply
       vars:
         extra_flags: --dry-run
+
+  ping:
+    desc: Ping Talos nodes matching the pattern in nodes=
+    dir: "{{.TALOS_DIR}}"
+    cmd: |
+      yq < $TALCONFIG \
+        '.nodes[] | select(.hostname | test("^.*{{.nodes}}.*$")) | .ipAddress' \
+      | xargs -i ping -c 1 {} {{.CLI_ARGS}}
+
+  reboot:
+    desc: Rebot Talos nodes matching the pattern in nodes=
+    dir: "{{.TALOS_DIR}}"
+    cmd: |
+      yq < $TALCONFIG \
+        '.nodes[] | select(.hostname | test("^.*{{.node}}.*$")) | .ipAddress' \
+      | xargs -i talosctl --nodes {} reboot {{.CLI_ARGS}}
+
+  dashboard:
+    desc: Show Talos dashboard for the first node matching the pattern in node=
+    dir: "{{.TALOS_DIR}}"
+    cmd: |
+      yq < $TALCONFIG \
+        '.nodes[] | select(.hostname | test("^.*{{.node}}.*$")) | .ipAddress' \
+      | head -1 \
+      | xargs -i talosctl --nodes {} dashboard {{.CLI_ARGS}}
 
   upgrade:talos:
     desc: Upgrade Talos on a node
@@ -103,16 +138,6 @@ tasks:
           --nodes {{.node}} \
         upgrade-k8s \
           --to {{.version}}
-
-  fetch-kubeconfig:
-    desc: Fetch Talos K8s kubeconfig file
-    dir: "{{.TALOS_DIR}}"
-    cmd: |
-      until talhelper \
-          --config-file $TALCONFIG \
-          --extra-flags "--force" \
-        gencommand kubeconfig \
-      | bash; do sleep 10; done
 
   reset:
     desc: Resets Talos nodes back to maintenance mode
