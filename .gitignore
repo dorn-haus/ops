@@ -1,4 +1,5 @@
+*_
 .direnv
 age.key
 kubeconfig
-talos/clusterconfig/*.dhcp.yaml
+result
