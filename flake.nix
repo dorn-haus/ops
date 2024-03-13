@@ -3,34 +3,50 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    # renovate: datasource=github-releases depName=numtide/flake-utils
     flake-utils.url = "github:numtide/flake-utils/v1.0.0";
-    # TODO: pin when https://github.com/budimanjojo/talhelper/pull/353 is released.
     talhelper.url = "github:budimanjojo/talhelper";
   };
 
-  outputs = { self, nixpkgs, flake-utils, talhelper, ... }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = import nixpkgs {
-          inherit system;
-        };
-      in
-      {
-        devShell = pkgs.mkShell {
-          buildInputs = with pkgs; [
-            (pkgs.wrapHelm pkgs.kubernetes-helm { plugins = [ pkgs.kubernetes-helmPlugins.helm-diff ]; })
-            (talhelper.packages.${system}.default)
-            age
-            fluxcd
-            go-task
-            helmfile
-            kubectl
-            sops
-            talosctl
-            yq
-          ];
-        };
-      });
-}
+  outputs = {
+    self,
+    nixpkgs,
+    flake-utils,
+    talhelper,
+    ...
+  }:
+    flake-utils.lib.eachDefaultSystem (system: let
+      lib = nixpkgs.lib;
+      pkgs = import nixpkgs {inherit system;};
 
+      talconfig-yaml = import ./talos/talconfig.nix {inherit pkgs;};
+    in {
+      devShells.default = pkgs.mkShell {
+        buildInputs = with pkgs; [
+          (talhelper.packages.${system}.default)
+          (wrapHelm kubernetes-helm {
+            plugins = with kubernetes-helmPlugins; [
+              helm-diff
+            ];
+          })
+
+          age
+          alejandra
+          fluxcd
+          go-task
+          helmfile
+          jq
+          kubectl
+          sops
+          talosctl
+          yq-go
+          yq
+        ];
+
+        shellHook = ''
+          export TALCONFIG="${talconfig-yaml}"
+        '';
+      };
+
+      packages = {inherit talconfig-yaml;};
+    });
+}

@@ -2,111 +2,161 @@
 version: 3
 
 vars:
-  TALOS_VERSION:
-    sh: yq -r .talosVersion talos/talconfig.yaml
-  KUBERNETES_VERSION:
-    sh: yq -r .kubernetesVersion talos/talconfig.yaml
   TALOS_DIR: "{{.ROOT_DIR}}/talos"
-  TALHELPER_SECRET_FILE: "{{.TALOS_DIR}}/talsecret.sops.yaml"
-  TALHELPER_CONFIG_FILE: "{{.TALOS_DIR}}/talconfig.yaml"
+  TALSECRET: "{{.TALOS_DIR}}/talsecret.sops.yaml"
 
 tasks:
   bootstrap:
     desc: Bootstrap Talos cluster
     dir: "{{.TALOS_DIR}}"
     cmds:
-      - task: bootstrap-gensecret
-      - task: bootstrap-genconfig
-      - task: bootstrap-apply
-        vars:
-          extra_flags: --insecure
-      - task: bootstrap-install
+      - task: bootstrap:genconfig
+      - task: bootstrap:gensecret
+      - task: bootstrap:apply-insecure
+      - task: bootstrap:install-k8s
       - task: fetch-kubeconfig
-      - task: bootstrap-apps
-      - task: bootstrap-apply
+      - task: bootstrap:install-apps
       - talosctl health --server=false
 
-  bootstrap-gensecret:
-    desc: Generate Talos secrets
-    dir: "{{.TALOS_DIR}}"
-    cmds:
-      - talhelper gensecret > {{.TALHELPER_SECRET_FILE}}
-      - task: :sops:.encrypt-file
-        vars:
-          file: "{{.TALHELPER_SECRET_FILE}}"
-    preconditions:
-      - { msg: "Missing talhelper config file", sh: "test -f {{.TALHELPER_CONFIG_FILE}}" }
-    status:
-      - test -f "{{.TALHELPER_SECRET_FILE}}"
-
-  bootstrap-genconfig:
-    desc: Generate Talos configs
+  bootstrap:genconfig:
+    desc: "Bootstrap Talos #1: Generate configs"
     dir: "{{.TALOS_DIR}}"
     cmds:
       - rm -rf clusterconfig
-      - talhelper genconfig
-    preconditions:
-      - { msg: "Missing talhelper config file", sh: "test -f {{.TALHELPER_CONFIG_FILE}}" }
+      - talhelper --config-file $TALCONFIG genconfig
 
-  bootstrap-apply:
-    desc: Apply Talos config
+  bootstrap:gensecret:
+    desc: "Bootstrap Talos #2: Generate secrets"
     dir: "{{.TALOS_DIR}}"
-    cmd: talhelper gencommand apply --extra-flags={{.extra_flags}} | bash
-    preconditions:
-      - { msg: "Missing talhelper config file", sh: "test -f {{.TALHELPER_CONFIG_FILE}}" }
+    cmds:
+      - talhelper gensecret > {{.TALSECRET}}
+      - task: :sops:.encrypt-file
+        vars:
+          file: "{{.TALSECRET}}"
+    status:
+      - test -f "{{.TALSECRET}}"
 
-  bootstrap-install:
-    desc: Install Talos cluster
+  bootstrap:apply-insecure:
+    desc: "Bootstrap Talos #3: Apply initial config (insecure)"
+    dir: "{{.TALOS_DIR}}"
+    cmd:
+      task: apply
+      vars:
+        extra_flags: --insecure
+
+  bootstrap:install-k8s:
+    desc: "Bootstrap Talos #4: Bootstrap K8s cluster"
     dir: "{{.TALOS_DIR}}"
     cmds:
       - echo "Installing Talos... ignore the errors and be patient"
-      - until talhelper gencommand bootstrap | bash; do sleep 2; done
+      - until talhelper --config-file $TALCONFIG gencommand bootstrap | bash; do sleep 2; done
       - sleep 2
-    preconditions:
-      - { msg: "Missing talhelper config file", sh: "test -f {{.TALHELPER_CONFIG_FILE}}" }
 
-  bootstrap-apps:
-    desc: Bootstrap core apps
+  bootstrap:install-apps:
+    desc: "Bootstrap Talos #5: Install core apps (cilium, etc.)"
     dir: "{{.TALOS_DIR}}"
     cmds:
-      # The node is not expected to be Ready=true state since CNI is disabled.
+      # CNI is disabled initially, hence the node is not expected to be in ready=true state.
       - until kubectl wait --for=condition=Ready=false nodes --all --timeout=600s; do sleep 2; done
       - helmfile --file apps/helmfile.yaml apply --skip-diff-on-install --suppress-diff
       - until kubectl wait --for=condition=Ready nodes --all --timeout=600s; do sleep 2; done
     preconditions:
       - { msg: "Missing kubeconfig", sh: "test -f {{.KUBECONFIG_FILE}}" }
 
+  fetch-kubeconfig:
+    desc: Fetch Talos K8s kubeconfig file
+    dir: "{{.TALOS_DIR}}"
+    cmd: |
+      until talhelper \
+          --config-file $TALCONFIG \
+          --extra-flags "--force" \
+        gencommand kubeconfig \
+      | bash; do sleep 10; done
+
+  apply:
+    desc: Apply Talos config to all nodes
+    dir: "{{.TALOS_DIR}}"
+    cmd: talhelper --config-file $TALCONFIG gencommand apply --extra-flags={{.extra_flags}} | bash
+
+  diff:
+    desc: Diff Talos config on all nodes
+    dir: "{{.TALOS_DIR}}"
+    cmd:
+      task: apply
+      vars:
+        extra_flags: --dry-run
+
+  ping:
+    desc: Ping Talos nodes matching the pattern in nodes=
+    dir: "{{.TALOS_DIR}}"
+    cmd: |
+      yq < $TALCONFIG \
+        '.nodes[] | select(.hostname | test("^.*{{.nodes}}.*$")) | .ipAddress' \
+      | xargs -i ping -c 1 {} {{.CLI_ARGS}}
+
+  reboot:
+    desc: Rebot Talos nodes matching the pattern in nodes=
+    dir: "{{.TALOS_DIR}}"
+    cmd: |
+      yq < $TALCONFIG \
+        '.nodes[] | select(.hostname | test("^.*{{.node}}.*$")) | .ipAddress' \
+      | xargs -i talosctl --nodes {} reboot {{.CLI_ARGS}}
+
+  dashboard:
+    desc: Show Talos dashboard for the first node matching the pattern in node=
+    dir: "{{.TALOS_DIR}}"
+    cmd: |
+      yq < $TALCONFIG \
+        '.nodes[] | select(.hostname | test("^.*{{.node}}.*$")) | .ipAddress' \
+      | head -1 \
+      | xargs -i talosctl --nodes {} dashboard {{.CLI_ARGS}}
+
   upgrade:talos:
-    desc: Upgrade Talos on a node to {{.TALOS_VERSION}}
-    cmd: talosctl --nodes {{.node}} upgrade --image ghcr.io/siderolabs/installer:{{.TALOS_VERSION}} --preserve=true --reboot-mode=default
+    desc: Upgrade Talos on a node
     requires:
-      vars: ["node"]
+      vars: ["node", "version"]
     preconditions:
       - { msg: "Node not found", sh: "talosctl --nodes {{.node}} get machineconfig" }
     status:
-      - talosctl version --nodes {{ .node }} --short | grep 'Tag.*{{ .TALOS_VERSION }}'
+      - talosctl --nodes {{.node}} version --short | grep "Tag:.*{{.version}}"
+    cmd: |
+      talosctl \
+          --nodes {{.node}} \
+        upgrade \
+          --image ghcr.io/siderolabs/installer:{{.version}} \
+          --preserve=true \
+          --reboot-mode=default
 
   upgrade:k8s:
-    desc: Upgrade K8s on a node to {{.KUBERNETES_VERSION}}
-    cmd: talosctl --nodes {{.node}} upgrade-k8s --to {{.KUBERNETES_VERSION}}
+    desc: Upgrade K8s on a node
     requires:
-      vars: ["node"]
+      vars: ["node", "version"]
     preconditions:
       - { msg: "Node not found", sh: "talosctl --nodes {{.node}} get machineconfig" }
+    cmd: |
+      talosctl \
+          --nodes {{.node}} \
+        upgrade-k8s \
+          --to {{.version}}
 
-  fetch-kubeconfig:
-    desc: Generate Talos kubeconfig
-    dir: "{{.TALOS_DIR}}"
-    cmd: until talhelper gencommand kubeconfig --extra-flags "--force" | bash; do sleep 10; done
-
-  reset-soft:
+  reset:
     desc: Resets Talos nodes back to maintenance mode
     prompt: This will destroy your cluster and reset the nodes back to maintenance mode... continue?
     dir: "{{.TALOS_DIR}}"
-    cmd: talhelper gencommand reset --extra-flags "--reboot --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL --graceful=false --wait=false" | bash
+    cmd: |
+      talhelper \
+          --config-file $TALCONFIG \
+          --extra-flags "--reboot --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL --graceful=false --wait=false" \
+        gencommand reset \
+      | bash
 
-  reset-hard:
+  reset:hard:
     desc: Wipes Talos nodes entirely so they can be reinstalled by booting into the installer
     prompt: DANGER!!! This will destroy your cluster and reset the nodes... continue?
     dir: "{{.TALOS_DIR}}"
-    cmd: talhelper gencommand reset --extra-flags "--reboot --graceful=false --wait=false" | bash
+    cmd: |
+      talhelper \
+          --config-file $TALCONFIG \
+          --extra-flags "--reboot --graceful=false --wait=false" \
+        gencommand reset \
+      | bash
