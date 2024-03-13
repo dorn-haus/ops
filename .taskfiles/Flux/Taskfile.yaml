@@ -8,7 +8,21 @@ vars:
   CLUSTER_SECRET_SOPS_FILE: "{{.K8S_DIR}}/flux/vars/cluster-secrets.sops.yaml"
 
 tasks:
-  bootstrap:
+  bootstrap-imperative:
+    desc: Bootstrap Flux (imperative)
+    cmd: |
+      flux bootstrap gitlab \
+          --registry=registry.docker.io \
+          --author-email=flux@dorn.haus \
+          --cluster-domain=dorn.haus \
+          --deploy-token-auth \
+          --owner=dornhaus \
+          --repository=ops \
+          --branch=main \
+          --path=./k8s \
+          --private=false
+
+  bootstrap-old:
     desc: Bootstrap Prometheus + Flux
     cmds:
       - task: bootstrap-prometheus-crd

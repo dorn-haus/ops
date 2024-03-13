@@ -1,5 +1,6 @@
 *_
 .direnv
 age.key
+gitlab.key
 kubeconfig
 result

@@ -7,16 +7,36 @@ resources:
   # renovate: datasource=github-releases depName=fluxcd/flux2
   - github.com/fluxcd/flux2/manifests/install?ref=v2.2.3
 patches:
+  # Enable Squid proxy through the bastion.
+  # Used to access IPv4 only resources from the IPv6 network.
+  - target:
+      kind: Deployment
+      labelSelector: app.kubernetes.io/part-of=flux
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: all
+      spec:
+        template:
+          spec:
+            containers:
+              - name: manager
+                env:
+                  - name: "HTTPS_PROXY"
+                    value: "https://[fd10:8::ba27:ebff:fe69:d702]:3128"
+                  - name: "NO_PROXY"
+                    value: ".svc.dorn.haus.,.svc.dorn.haus,.svc"
   # Remove the default network policies
-  - patch: |-
+  - target:
+      group: networking.k8s.io
+      kind: NetworkPolicy
+    patch: |-
       $patch: delete
       apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
         name: not-used
-    target:
-      group: networking.k8s.io
-      kind: NetworkPolicy
   # Resources renamed to match those
   # installed by oci://ghcr.io/fluxcd/flux-manifests
   - target:
