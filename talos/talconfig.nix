@@ -12,8 +12,8 @@
 in
   writeYAML "talconfig.yaml" {
     clusterName = cluster.name;
-    talosVersion = "v1.6.5";
-    kubernetesVersion = "v1.29.2";
+    talosVersion = "v1.7.6";
+    kubernetesVersion = "v1.31.0";
     endpoint = "https://[${(builtins.head hosts.control_plane).ipv6}]:6443";
     domain = cluster.domain;
 
