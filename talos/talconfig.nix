@@ -17,11 +17,9 @@ in
     endpoint = "https://[${(builtins.head hosts.control_plane).ipv6}]:6443";
     domain = cluster.domain;
 
-    cniConfig = {
-      # Disable Flannel CNI.
-      # This is necessary in order to enable Cilium CNI.
-      name = "none";
-    };
+    # Disable Flannel CNI.
+    # This is necessary in order to enable Cilium CNI.
+    cniConfig.name = "none";
 
     additionalMachineCertSans = sans;
     additionalApiServerCertSans = sans;
