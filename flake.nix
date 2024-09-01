@@ -8,16 +8,13 @@
   };
 
   outputs = {
-    self,
     nixpkgs,
     flake-utils,
     talhelper,
     ...
   }:
     flake-utils.lib.eachDefaultSystem (system: let
-      lib = nixpkgs.lib;
       pkgs = import nixpkgs {inherit system;};
-
       talconfig-yaml = import ./talos/talconfig.nix {inherit pkgs;};
     in {
       devShells.default = pkgs.mkShell {
