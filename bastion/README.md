@@ -19,5 +19,5 @@ images on a 64G µSD card.
 Decrypt it using the `age.key` file in this repo:
 
 ```sh
-$ sops --input-type ini --output-type ini --decrypt etc/wiregpard/dh8.sops.conf
+$ sops --input-type ini --output-type ini --decrypt etc/wireguard/wg.sops.conf
 ```
