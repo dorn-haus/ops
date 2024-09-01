@@ -28,6 +28,7 @@
 
           age
           alejandra
+          ansible
           fluxcd
           go-task
           helmfile
