@@ -15,8 +15,4 @@ in
     net4 = "${ipv4}/${toString node.net4Len}";
     net6 = "${ipv6}/${toString node.net6Len}";
   })
-  {
-    "01" = "ee:8e:b5:6f:41:d2";
-    "06" = "46:8a:5b:ca:96:18";
-    "07" = "46:37:e6:56:60:0e";
-  }
+  (import ./control_plane_hosts.nix)
