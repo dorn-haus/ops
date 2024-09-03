@@ -13,8 +13,8 @@ in
   writeYAML "talconfig.yaml" {
     clusterName = cluster.name;
     talosVersion = "v1.7.6";
-    kubernetesVersion = "v1.31.0";
-    endpoint = "https://[${(builtins.head hosts.control_plane).ipv6}]:6443";
+    kubernetesVersion = "v1.30.2";
+    endpoint = "https://${(builtins.head hosts.control_plane).ipv4}:6443";
     domain = cluster.domain;
 
     # Disable Flannel CNI.
@@ -31,11 +31,12 @@ in
     nodes =
       map (node: {
         inherit (node) hostname;
-        ipAddress = node.ipv6;
+        ipAddress = "${node.ipv4},${node.ipv6}";
         controlPlane = true;
         installDisk = "/dev/sda";
         networkInterfaces = [
           {
+            addresses = with node; [net4 net6];
             deviceSelector.hardwareAddr = "*";
             dhcp = false;
           }
@@ -47,8 +48,8 @@ in
       (toYAML {} {
         cluster = {
           network = with cluster.network; {
-            podSubnets = [pod.cidr];
-            serviceSubnets = [service.cidr];
+            podSubnets = [pod.cidr6];
+            serviceSubnets = [service.cidr6];
           };
 
           # Disable kube-proxy, since we're using
@@ -64,32 +65,18 @@ in
           scheduler.extraArgs.bind-address = "::1";
         };
         machine = {
-          # IPv6-enabled time server:
-          time.servers = ["time.cloudflare.com"];
           network = {
             nameservers = [
-              "2001:4860:4860::8844" # Google / 2
-              "2606:4700:4700::1001" # Cloudflare / 2
-            ];
-            extraHostEntries = with hosts.bastion; [
-              {
-                ip = ipv6;
-                aliases = [
-                  hostname
-                  "${hostname}.${cluster.domain}"
-                ];
-              }
+              "1.1.1.1" # CloudFlare 1
+              "8.8.8.8" # Google 1
+              "2606:4700:4700::1001" # Cloudflare 2
+              "2001:4860:4860::8844" # Google 2
             ];
           };
           # Prevent the kubelet from using any other address range.
           # Otherwise the kubelet might pick the auto-configured ::ffff:0:0/96
           # range, which has no routes configured so requests would fail.
-          kubelet.nodeIP.validSubnets = [cluster.network.node.cidr];
-          env = rec {
-            # TODO: squid.port!
-            http_proxy = "${hosts.bastion.hostname}:3128";
-            https_proxy = http_proxy;
-          };
+          kubelet.nodeIP.validSubnets = [cluster.network.node.cidr6];
         };
       })
     ];

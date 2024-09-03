@@ -1,19 +1,23 @@
 let
-  toCIDR = prefix: subnet: "${prefix}/${toString subnet}";
+  toCIDR = net: len: "${net}/${toString len}";
 in {
   node = rec {
-    prefix = "fd10:8::";
-    prefixLen = 64;
-    cidr = toCIDR prefix prefixLen;
+    net4 = "192.168.8.0";
+    net4Len = 16;
+    cidr4 = toCIDR net4 net4Len;
+
+    net6 = "fd10:8::";
+    net6Len = 64;
+    cidr6 = toCIDR net6 net6Len;
   };
   pod = rec {
-    prefix = "fd10:244::";
-    prefixLen = 64;
-    cidr = toCIDR prefix prefixLen;
+    net6 = "fd10:244::";
+    net6Len = 64;
+    cidr6 = toCIDR net6 net6Len;
   };
   service = rec {
-    prefix = "fd10:96::";
-    prefixLen = 108;
-    cidr = toCIDR prefix prefixLen;
+    net6 = "fd10:96::";
+    net6Len = 108;
+    cidr6 = toCIDR net6 net6Len;
   };
 }
