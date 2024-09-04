@@ -1,0 +1,5 @@
+---
+- name: Update packages
+  tags: update
+  import_tasks: alpine.yaml
+  when: ansible_facts["os_family"]|lower == "alpine"

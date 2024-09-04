@@ -1,0 +1,7 @@
+---
+- name: Setup / Update all hosts
+  hosts: all
+  become: true
+  roles:
+  - set_hostname
+  - update_packages

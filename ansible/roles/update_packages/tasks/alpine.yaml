@@ -1,0 +1,6 @@
+---
+- name: Update APK packages
+  community.general.apk:
+    available: true
+    update_cache: true
+    upgrade: true
