@@ -1,2 +1,2 @@
-[all]
-192.168.8.2 num=02
+[bastion]
+192.168.4.1 hostname=bastion

@@ -1,0 +1,38 @@
+---
+- name: Set the hostname
+  tags: setup
+  ansible.builtin.hostname:
+    name: "{{ hostname }}"
+
+- name: Configure hosts file
+  tags: setup
+  ansible.builtin.copy:
+    dest: /etc/hosts
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+    backup: true
+    content: |
+      127.0.0.1 localhost {{ hostname }} localhost.dorn.haus {{ hostname }}.dorn.haus
+      ::1       localhost {{ hostname }} localhost.dorn.haus {{ hostname }}.dorn.haus
+
+- name: Configure network interfaces
+  tags: setup
+  ansible.builtin.copy:
+    dest: /etc/network/interfaces
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+    backup: true
+    content: |
+      auto lo
+      iface lo inet loopback
+
+      auto eth0
+      iface eth0 inet static
+          address 192.168.4.1
+          netmask 255.255.0.0
+          gateway 192.168.1.1
+          dns-nameservers 1.0.0.1 8.8.4.4 1.1.1.1 8.8.8.8
+      iface eth0 inet6 static
+          dns-nameservers 2606:4700:4700::1001 2001:4860:4860::8844 2606:4700:4700::1111 2001:4860:4860::8888

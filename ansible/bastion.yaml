@@ -1,0 +1,7 @@
+---
+- name: Setup / Update Bastion node
+  hosts: bastion
+  become: true
+  roles:
+  - configure_network
+  - update_packages

@@ -1,5 +1,0 @@
----
-- name: Set hostname
-  tags: setup
-  ansible.builtin.hostname:
-    name: "k8s-{{ num }}"
