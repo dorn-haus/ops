@@ -1,11 +1,9 @@
 ---
-- name: Set the hostname
-  tags: setup
+- name: Set hostname
   ansible.builtin.hostname:
-    name: "{{ hostname }}"
+    name: "{{ inventory_hostname }}"
 
 - name: Configure hosts file
-  tags: setup
   ansible.builtin.copy:
     dest: /etc/hosts
     owner: root
@@ -13,11 +11,11 @@
     mode: u=rw,g=r,o=r
     backup: true
     content: |
-      127.0.0.1 localhost {{ hostname }} localhost.dorn.haus {{ hostname }}.dorn.haus
-      ::1       localhost {{ hostname }} localhost.dorn.haus {{ hostname }}.dorn.haus
+      127.0.0.1 localhost {{ inventory_hostname }} localhost.dorn.haus {{ inventory_hostname }}.dorn.haus
+      ::1       localhost {{ inventory_hostname }} localhost.dorn.haus {{ inventory_hostname }}.dorn.haus
 
 - name: Configure network interfaces
-  tags: setup
+  when: ansible_facts["os_family"]|lower == "alpine"
   vars:
     ipv4:
       addr: 192.168.4.1/16
@@ -42,3 +40,24 @@
     group: root
     mode: u=rw,g=r,o=r
     backup: true
+
+- name: Install Tailscale
+  when: ansible_facts["os_family"]|lower == "alpine"
+  community.general.apk:
+    name: tailscale
+    update_cache: true
+
+- name: Start Tailscale service
+  ansible.builtin.service:
+    name: tailscale
+    state: started
+    enabled: true
+
+- name: Join Tailscale network
+  ansible.builtin.command:
+    argv:
+    - tailscale
+    - up
+    - --authkey={{ secrets.tailscale.ephemeral_key.secret }}
+    - --hostname={{ inventory_hostname }}
+    - --ssh

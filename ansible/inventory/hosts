@@ -1,2 +1,5 @@
-[bastion]
-192.168.4.1 hostname=bastion
+[alpine]
+bastion ansible_host=192.168.4.1
+
+[all:children]
+alpine
