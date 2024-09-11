@@ -1,4 +1,5 @@
 ---
+# TODO: Reboot after kernel updates.
 - name: Update APK packages
   community.general.apk:
     available: true

@@ -54,10 +54,23 @@
     enabled: true
 
 - name: Join Tailscale network
-  ansible.builtin.command:
-    argv:
+  vars:
+    all_args:
     - tailscale
     - up
     - --authkey={{ secrets.tailscale.ephemeral_key.secret }}
     - --hostname={{ inventory_hostname }}
+    bastion_args:
+    - --advertise-routes=fd10:8::/64,192.168.8.0/24
     - --ssh
+  ansible.builtin.command:
+    argv: "{{ all_args + (bastion_args if ansible_hostname == 'bastion' else []) }}"
+
+- name: Configure IPv4/IPv6 forwarding
+  when: ansible_hostname == "bastion"
+  ansible.posix.sysctl:
+    name: "{{ item }}"
+    value: "1"
+  loop:
+  - net.ipv4.ip_forward
+  - net.ipv6.conf.all.forwarding
