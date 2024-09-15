@@ -5,8 +5,3 @@
   roles:
   - update_packages
   - configure_network
-
-
-# TODO: Bootstrap doas:
-# /etc/doas/nopass.conf:
-# permit nopass :wheel
