@@ -1,7 +1,7 @@
 ---
 - name: Configure network interfaces
   ansible.builtin.template:
-    src: etc/apk/repositories
+    src: etc/apk/repositories.j2
     dest: /etc/apk/repositories
     owner: root
     group: root
