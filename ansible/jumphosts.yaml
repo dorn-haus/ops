@@ -1,6 +1,6 @@
 ---
-- name: Setup / Update Bastion node
-  hosts: bastion
+- name: Setup / Update Jumphost node
+  hosts: jumphost
   become: true
   roles:
   - update_packages

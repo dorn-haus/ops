@@ -1,5 +1,9 @@
-[alpine]
-bastion ansible_host=192.168.4.1
+[jumphost]
+jmpa
+jmpb
+
+[alpine:children]
+jumphost
 
 [all:children]
 alpine
