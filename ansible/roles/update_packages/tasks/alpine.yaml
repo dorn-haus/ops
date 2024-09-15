@@ -1,7 +1,11 @@
 ---
-# TODO: Reboot after kernel updates.
 - name: Update APK packages
   community.general.apk:
     available: true
     update_cache: true
     upgrade: true
+  register: updates
+
+- name: Reboot after a kernel upgrade
+  when: "'linux-lts' in updates.packages"
+  ansible.builtin.reboot:
