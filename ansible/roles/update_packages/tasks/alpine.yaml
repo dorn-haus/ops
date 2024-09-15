@@ -1,4 +1,13 @@
 ---
+- name: Configure network interfaces
+  ansible.builtin.template:
+    src: etc/apk/repositories
+    dest: /etc/apk/repositories
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+    backup: true
+
 - name: Update APK packages
   community.general.apk:
     available: true

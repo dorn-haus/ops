@@ -2,3 +2,4 @@
 ansible_become_method: doas
 ansible_python_interpreter: /usr/bin/python
 ansible_user: alpine
+alpine_version: "3.20"
