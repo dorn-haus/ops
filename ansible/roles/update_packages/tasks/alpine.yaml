@@ -9,3 +9,4 @@
 - name: Reboot after a kernel upgrade
   when: "'linux-lts' in updates.packages"
   ansible.builtin.reboot:
+  throttle: 1
