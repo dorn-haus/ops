@@ -21,6 +21,76 @@ for managing my hobby cluster in the basement. Inspired by popular repos like
 
 [bastion]: https://github.com/dorn-haus/8/tree/main/bastion
 
+## Custom Domain
+
+To use a custom domain, there is a one-time bootstrapping procedure to go
+through.
+
+### 1. Get a domain
+
+I'll be going with `dorn.haus`, but any domain should do.
+
+### 2. Register with Cloudflare
+
+I'll be using Cloudflare services later on, most notably DNS, so I always start
+by registering the domain with Cloudflare.
+
+An additional perk with Cloudflare is the free email forwarding of wildcard
+addresses, allowing incoming emails without having to register with at enail
+provider or managing an exchange server.
+
+But the main reason for registering early is to get an SSL certificate. My ISP
+likes to block incoming traffic on port 80 from time to time, making it
+impossible to get/renew certificates using Certbot with the HTTP challenge.
+
+### 3. Get a temporary LetsEncrypt certificate on the domain
+
+An easy way to get started is to manually get an initial certificate:
+
+```
+certbot certonly --preferred-challenges dns --manual -d dorn.haus
+```
+
+Then manually add & remove the TXT record in the Cloudflare UI.
+
+I then set up a simple Nginx reverse-proxy and NAT port 443. This will be
+needed to serve the OpenID challenge via Keycloak (next step).
+
+### 4. Start a temporary Keycloak server
+
+Fire up a Keycloak development server using Podman to create
+an initial user, `attila@dorn.haus`. I do this at home while NAT'ing myself to
+the outside world, as well as making sure my LetsEncrypt cert is still
+functional.
+
+```
+export PASSWORD="$(pwgen -1sy 12)"
+echo "admin password: $PASSWORD (temporary)"
+podman run -p 8080:8080 \
+docker run \
+  --name keycloak \
+  -p 8443:8443 \
+  -p 9000:9000 \
+  -e KEYCLOAK_ADMIN=admin \
+  -e KEYCLOAK_ADMIN_PASSWORD="$PASSWORD" \
+  -e PROXY_ADDRESS_FORWARDING=true \
+  -v /path/to/certs:/etc/certs \
+  quay.io/keycloak/keycloak start \
+  --proxy-headers forwarded \
+  --hostname=https://dorn.haus/keycloak/ \
+  --https-certificate-file=/etc/certs/cert.pem \
+  --https-certificate-key-file=/etc/certs/privkey.pem \
+  --log-level=INFO \
+  --verbose
+```
+
+Next, configure WebFinger in Nginx (see `bootstrap/nginx.conf`). Create a new
+Keycloak realm, add a user (e.g. `attila@dorn.haus`), and add the Tailscale
+client. The Tailscale Client ID & secret will be needed when connecting.
+
+Once connected, we can sign in to Tailscale using Keycloak as the OIDC
+provider, and create a personal tailnet for our domain, for free.
+
 ## 6️⃣ IPv6 networking
 
 Currently the machines in the cluster are connected to to the router that
