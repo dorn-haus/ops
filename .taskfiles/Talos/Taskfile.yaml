@@ -15,7 +15,7 @@ tasks:
       - task: bootstrap:apply-insecure
       - task: bootstrap:install-k8s
       - task: fetch-kubeconfig
-      - task: bootstrap:install-apps
+      - task: bootstrap:install-cni
       - talosctl health --server=false
 
   bootstrap:genconfig:
@@ -52,8 +52,8 @@ tasks:
       - until talhelper --config-file $TALCONFIG gencommand bootstrap | bash; do sleep 2; done
       - sleep 2
 
-  bootstrap:install-apps:
-    desc: "Bootstrap Talos #5: Install core apps (cilium, etc.)"
+  bootstrap:install-cni:
+    desc: "Bootstrap Talos #5: Install CNI"
     dir: "{{.TALOS_DIR}}"
     cmds:
       # CNI is disabled initially, hence the node is not expected to be in ready=true state.
