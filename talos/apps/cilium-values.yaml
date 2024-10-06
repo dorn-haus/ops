@@ -1,5 +1,6 @@
-# K8s endpoint.
-k8sServiceHost: 192.168.8.1
+# Use KubePrism.
+# TODO: Should work via IPv6 as well.
+k8sServiceHost: 127.0.0.1
 k8sServicePort: 7445
 
 # Mount CGroup at a different location.
@@ -40,6 +41,30 @@ kubeProxyReplacementHealthzBindAddr: "[::]:10256"
 localRedirectPolicy: true
 
 # Rollout pods automatically when a config map changes.
+rollOutCiliumPods: true
 operator:
   rollOutPods: true
-rollOutCiliumPods: true
+
+  # Use a single operator replica.
+  # TODO: Add a second one when the nodes are prepared.
+  replicas: 1
+
+# Required security context capabilities.
+securityContext:
+  capabilities:
+    ciliumAgent:
+    - CHOWN
+    - KILL
+    - NET_ADMIN
+    - NET_RAW
+    - IPC_LOCK
+    - SYS_ADMIN
+    - SYS_RESOURCE
+    - DAC_OVERRIDE
+    - FOWNER
+    - SETGID
+    - SETUID
+    cleanCiliumState:
+    - NET_ADMIN
+    - SYS_ADMIN
+    - SYS_RESOURCE
