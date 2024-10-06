@@ -1,59 +1,45 @@
-autoDirectNodeRoutes: true
-bgpControlPlane:
-  enabled: false
-bpf:
-  masquerade: false
+# K8s endpoint.
+k8sServiceHost: 192.168.8.1
+k8sServicePort: 7445
+
+# Mount CGroup at a different location.
+# The default is to mount it at /run/cilium/cgroupv2.
 cgroup:
   automount:
     enabled: false
   hostRoot: /sys/fs/cgroup
-cluster:
-  id: 1
-  name: locker
-containerRuntime:
-  integration: containerd
+
+# Enable use of per endpoint routes instead of routing via the cilium_host interface.
 endpointRoutes:
   enabled: true
+
+# Disable Hubble.
 hubble:
   enabled: false
+
+# IP Address Management.
+  # TODO: We should be using the default (cluster-scope).
 ipam:
   mode: kubernetes
+
+# Enable native routing.
+# This can be done because all nodes are on the same L2 network.
+routingMode: native
+autoDirectNodeRoutes: true
 ipv4:
-  enabled: false
+  enabled: true  # default = true
 ipv6:
-  enabled: true
+  enabled: true  # default = false
+ipv4NativeRoutingCIDR: 10.244.0.0/16
 ipv6NativeRoutingCIDR: fd10:244::/64
-k8sServiceHost: "::"
-k8sServicePort: 7445
-kubeProxyReplacement: true
-# Export metrics on all IPv6 addresses.
+
+# Export metrics on IPv6 addresses.
 kubeProxyReplacementHealthzBindAddr: "[::]:10256"
-l2announcements:
-  enabled: false # https://github.com/cilium/cilium/issues/28985
-loadBalancer:
-  algorithm: maglev
-  mode: dsr
+
+# Enable local redirect policy.
 localRedirectPolicy: true
+
+# Rollout pods automatically when a config map changes.
 operator:
-  replicas: 1
   rollOutPods: true
 rollOutCiliumPods: true
-routingMode: native
-securityContext:
-  capabilities:
-    ciliumAgent:
-      - CHOWN
-      - KILL
-      - NET_ADMIN
-      - NET_RAW
-      - IPC_LOCK
-      - SYS_ADMIN
-      - SYS_RESOURCE
-      - DAC_OVERRIDE
-      - FOWNER
-      - SETGID
-      - SETUID
-    cleanCiliumState:
-      - NET_ADMIN
-      - SYS_ADMIN
-      - SYS_RESOURCE
