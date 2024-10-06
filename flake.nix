@@ -29,6 +29,7 @@
           age
           alejandra
           ansible
+          cilium-cli
           fluxcd
           go-task
           helmfile
