@@ -6,6 +6,9 @@
   writeYAML = (pkgs.formats.yaml {}).generate;
 
   first = builtins.head hosts.control_plane;
+
+  cp = map (node: node // {cp = true;}) hosts.control_plane;
+  workers = map (node: node // {cp = false;}) hosts.workers;
 in
   writeYAML "talconfig.yaml" {
     clusterName = cluster.name;
@@ -18,20 +21,19 @@ in
     # Currently the control plane nodes don't do much anyway.
     allowSchedulingOnControlPlanes = true;
 
-    nodes =
-      map (node: {
-        inherit (node) hostname;
-        ipAddress = node.ipv4;
-        controlPlane = true;
-        installDiskSelector.type = "ssd";
-        networkInterfaces = [
-          {
-            deviceSelector.hardwareAddr = "*";
-            dhcp = true;
-          }
-        ];
-      })
-      hosts.control_plane;
+    nodes = map (node: {
+      inherit (node) hostname;
+      controlPlane = node.cp;
+
+      ipAddress = node.ipv4;
+      installDiskSelector.type = "ssd";
+      networkInterfaces = [
+        {
+          deviceSelector.hardwareAddr = "*";
+          dhcp = true;
+        }
+      ];
+    }) (cp ++ workers);
 
     patches = [
       (toYAML {} {
