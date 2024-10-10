@@ -25,14 +25,8 @@
   retries: 8
   delay: 3
 
-- name: DEBUG
-  ansible.builtin.command:
-    argv:
-    - tailscale
-    - down
-
 - name: Join Tailscale network if needed
-  # when: not (tailscale_status.stdout | ansible.builtin.from_json).Self.Online
+  when: not (tailscale_status.stdout | ansible.builtin.from_json).Self.Online
   vars:
     all_args:
     - tailscale
