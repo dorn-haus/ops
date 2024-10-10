@@ -1,3 +1,0 @@
----
-ansible_host: 192.168.4.2
-eui64_addr: fd10:8::0280:64ff:fecc:2540

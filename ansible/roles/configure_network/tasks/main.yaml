@@ -15,7 +15,7 @@
       ::1       localhost {{ inventory_hostname }} localhost.dorn.haus {{ inventory_hostname }}.dorn.haus
 
 - name: Configure network interfaces
-  when: ansible_facts["os_family"]|lower == "alpine"
+  when: ansible_facts["os_family"] | lower == "alpine"
   vars:
     ipv4:
       addr: "{{ ansible_host }}/16"
@@ -42,7 +42,7 @@
     backup: true
 
 - name: Install Tailscale
-  when: ansible_facts["os_family"]|lower == "alpine"
+  when: ansible_facts["os_family"] | lower == "alpine"
   community.general.apk:
     name: tailscale
     update_cache: true
@@ -63,8 +63,12 @@
     - --json
   register: tailscale_status
   changed_when: false
+  until: tailscale_status.rc == 0
+  retries: 8
+  delay: 3
 
 - name: Join Tailscale network if needed
+  when: not (tailscale_status.stdout | ansible.builtin.from_json).Self.Online
   vars:
     all_args:
     - tailscale
@@ -76,14 +80,12 @@
     - --accept-routes=false
     - --ssh
   ansible.builtin.command:
-    argv: "{{ all_args + (jumphost_args if jumphost else []) }}"
-  when: not (tailscale_status.stdout|ansible.builtin.from_json).Self.Online
+    argv: "{{ all_args + (jumphost_args if (jumphost is defined and jumphost | bool) else []) }}"
 
 - name: Configure IPv4/IPv6 forwarding
-  when: jumphost
   ansible.posix.sysctl:
     name: "{{ item }}"
-    value: "1"
+    value: "{{ '1' if jumphost is defined and jumphost | bool else '0' }}"
   loop:
   - net.ipv4.ip_forward
   - net.ipv6.conf.all.forwarding

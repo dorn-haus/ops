@@ -1,9 +1,14 @@
-[jumphost]
-jmpa
-jmpb
+[jumphosts]
+jmpa        ansible_host=192.168.4.1    eui64_addr=fd10:8::ba27:ebff:fe69:d702  jumphost=true
+jmpb        ansible_host=192.168.4.2    eui64_addr=fd10:8::0280:64ff:fecc:2540  jumphost=true
+
+[alpine]
+locker-08   ansible_host=192.168.8.8    eui64_addr=fd10:8::4e52:62ff:fe12:d     jumphost=false
+locker-09   ansible_host=192.168.8.9    eui64_addr=fd10:8::4e52:62ff:fe12:35bb  jumphost=false
+locker-10   ansible_host=192.168.8.10   eui64_addr=fd10:8::                     jumphost=false
 
 [alpine:children]
-jumphost
+jumphosts
 
 [all:children]
 alpine

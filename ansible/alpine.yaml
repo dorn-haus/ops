@@ -1,6 +1,6 @@
 ---
-- name: Setup / Update Jumphost node
-  hosts: jumphost
+- name: Setup / Update Alpine nodes
+  hosts: alpine
   become: true
   roles:
   - update_packages

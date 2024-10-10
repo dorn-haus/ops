@@ -1,5 +1,5 @@
 ---
-- name: Configure network interfaces
+- name: Set repository mirror
   ansible.builtin.template:
     src: etc/apk/repositories.j2
     dest: /etc/apk/repositories
