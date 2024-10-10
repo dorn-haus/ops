@@ -1,3 +1,4 @@
+---
 - name: Ensure main repository is present
   vars:
     mirror: http://dl-cdn.alpinelinux.org/alpine/v{{ alpine_version }}/main
