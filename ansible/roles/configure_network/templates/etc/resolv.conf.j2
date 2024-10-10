@@ -1,0 +1,4 @@
+search locker.dorn.haus
+{% for ip in ipv4.nameservers + ipv6.nameservers %}
+nameserver {{ ip }}
+{% endfor +%}

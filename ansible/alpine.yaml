@@ -1,7 +1,16 @@
 ---
+- name: Bootstrap Alpine nodes
+  hosts: alpine
+  # Gathering facts might not work on a freshly installed system.
+  gather_facts: false
+  roles:
+  - bootstrap
+
 - name: Setup / Update Alpine nodes
   hosts: alpine
   become: true
+  become_method: doas
   roles:
-  - update_packages
   - configure_network
+  - update_packages
+  - configure_tailscale

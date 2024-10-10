@@ -1,0 +1,56 @@
+---
+- name: Install Tailscale
+  when: ansible_facts["os_family"] | lower == "alpine"
+  community.general.apk:
+    name: tailscale
+    update_cache: true
+
+- name: Start Tailscale service
+  ansible.builtin.service:
+    name: tailscale
+    state: started
+    enabled: true
+
+- name: Check Tailscale status
+  ansible.builtin.command:
+    argv:
+    - tailscale
+    - status
+    - --peers=false
+    - --self
+    - --json
+  register: tailscale_status
+  changed_when: false
+  until: tailscale_status.rc == 0
+  retries: 8
+  delay: 3
+
+- name: DEBUG
+  ansible.builtin.command:
+    argv:
+    - tailscale
+    - down
+
+- name: Join Tailscale network if needed
+  # when: not (tailscale_status.stdout | ansible.builtin.from_json).Self.Online
+  vars:
+    all_args:
+    - tailscale
+    - up
+    - --authkey={{ secrets.tailscale.ephemeral_key.secret }}
+    - --hostname={{ inventory_hostname }}
+    - --accept-routes=false
+    - --accept-dns=false
+    jumphost_args:
+    - --advertise-routes=fd10:8::/64,192.168.8.0/24
+    - --ssh
+  ansible.builtin.command:
+    argv: "{{ all_args + (jumphost_args if (jumphost is defined and jumphost | bool) else []) }}"
+
+- name: Configure IPv4/IPv6 forwarding
+  ansible.posix.sysctl:
+    name: "{{ item }}"
+    value: "{{ '1' if jumphost is defined and jumphost | bool else '0' }}"
+  loop:
+  - net.ipv4.ip_forward
+  - net.ipv6.conf.all.forwarding

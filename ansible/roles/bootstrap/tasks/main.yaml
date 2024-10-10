@@ -1,0 +1,11 @@
+---
+- name: Check if Python is installed
+  raw: command -v python3
+  register: python_check
+  changed_when: false
+  ignore_errors: true
+
+- name: Bootstrap Ansible dependencies
+  when: python_check.rc != 0
+  import_tasks: alpine.yaml
+  become: true
