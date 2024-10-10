@@ -64,7 +64,7 @@ spec:
     operator:
       replicas: 1
       rollOutPods: true
-# NEW: vvvvvv
+      # NEW: vvvvvv
       prometheus:
         enabled: true
         serviceMonitor:
@@ -82,24 +82,24 @@ spec:
       enabled: true
       annotations:
         grafana_folder: Cilium
-# NEW: ^^^^^^
+        # NEW: ^^^^^^
     rollOutCiliumPods: true
     routingMode: native
     securityContext:
       capabilities:
         ciliumAgent:
-          - CHOWN
-          - KILL
-          - NET_ADMIN
-          - NET_RAW
-          - IPC_LOCK
-          - SYS_ADMIN
-          - SYS_RESOURCE
-          - DAC_OVERRIDE
-          - FOWNER
-          - SETGID
-          - SETUID
+        - CHOWN
+        - KILL
+        - NET_ADMIN
+        - NET_RAW
+        - IPC_LOCK
+        - SYS_ADMIN
+        - SYS_RESOURCE
+        - DAC_OVERRIDE
+        - FOWNER
+        - SETGID
+        - SETUID
         cleanCiliumState:
-          - NET_ADMIN
-          - SYS_ADMIN
-          - SYS_RESOURCE
+        - NET_ADMIN
+        - SYS_ADMIN
+        - SYS_RESOURCE

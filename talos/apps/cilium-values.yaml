@@ -1,3 +1,4 @@
+---
 # Use KubePrism.
 # TODO: Should work via IPv6 as well.
 k8sServiceHost: 127.0.0.1
@@ -19,7 +20,7 @@ hubble:
   enabled: false
 
 # IP Address Management.
-  # TODO: We should be using the default (cluster-scope).
+# TODO: We should be using the default (cluster-scope).
 ipam:
   mode: kubernetes
 
@@ -28,9 +29,9 @@ ipam:
 routingMode: native
 autoDirectNodeRoutes: true
 ipv4:
-  enabled: true  # default = true
+  enabled: true # default = true
 ipv6:
-  enabled: true  # default = false
+  enabled: true # default = false
 ipv4NativeRoutingCIDR: 10.244.0.0/16
 ipv6NativeRoutingCIDR: fd10:244::/64
 

@@ -10,31 +10,31 @@ tasks:
     desc: Bootstrap Talos cluster
     dir: "{{.TALOS_DIR}}"
     cmds:
-      - task: bootstrap:genconfig
-      - task: bootstrap:gensecret
-      - task: bootstrap:apply-insecure
-      - task: bootstrap:install-k8s
-      - task: fetch-kubeconfig
-      - task: bootstrap:install-cni
-      - talosctl health --server=false
+    - task: bootstrap:genconfig
+    - task: bootstrap:gensecret
+    - task: bootstrap:apply-insecure
+    - task: bootstrap:install-k8s
+    - task: fetch-kubeconfig
+    - task: bootstrap:install-cni
+    - talosctl health --server=false
 
   bootstrap:genconfig:
     desc: "Bootstrap Talos #1: Generate configs"
     dir: "{{.TALOS_DIR}}"
     cmds:
-      - rm -rf clusterconfig
-      - talhelper --config-file $TALCONFIG genconfig
+    - rm -rf clusterconfig
+    - talhelper --config-file $TALCONFIG genconfig
 
   bootstrap:gensecret:
     desc: "Bootstrap Talos #2: Generate secrets"
     dir: "{{.TALOS_DIR}}"
     cmds:
-      - talhelper gensecret > {{.TALSECRET}}
-      - task: :sops:.encrypt-file
-        vars:
-          file: "{{.TALSECRET}}"
+    - talhelper gensecret > {{.TALSECRET}}
+    - task: :sops:.encrypt-file
+      vars:
+        file: "{{.TALSECRET}}"
     status:
-      - test -f "{{.TALSECRET}}"
+    - test -f "{{.TALSECRET}}"
 
   bootstrap:apply-insecure:
     desc: "Bootstrap Talos #3: Apply initial config (insecure)"
@@ -48,20 +48,20 @@ tasks:
     desc: "Bootstrap Talos #4: Bootstrap K8s cluster"
     dir: "{{.TALOS_DIR}}"
     cmds:
-      - echo "Installing Talos... ignore the errors and be patient"
-      - until talhelper --config-file $TALCONFIG gencommand bootstrap | bash; do sleep 2; done
-      - sleep 2
+    - echo "Installing Talos... ignore the errors and be patient"
+    - until talhelper --config-file $TALCONFIG gencommand bootstrap | bash; do sleep 2; done
+    - sleep 2
 
   bootstrap:install-cni:
     desc: "Bootstrap Talos #5: Install CNI"
     dir: "{{.TALOS_DIR}}"
     cmds:
-      # CNI is disabled initially, hence the node is not expected to be in ready=true state.
-      - until kubectl wait --for=condition=Ready=false nodes --all --timeout=600s; do sleep 2; done
-      - helmfile --file apps/helmfile.yaml apply --skip-diff-on-install --suppress-diff
-      - until kubectl wait --for=condition=Ready nodes --all --timeout=600s; do sleep 2; done
+    # CNI is disabled initially, hence the node is not expected to be in ready=true state.
+    - until kubectl wait --for=condition=Ready=false nodes --all --timeout=600s; do sleep 2; done
+    - helmfile --file apps/helmfile.yaml apply --skip-diff-on-install --suppress-diff
+    - until kubectl wait --for=condition=Ready nodes --all --timeout=600s; do sleep 2; done
     preconditions:
-      - { msg: "Missing kubeconfig", sh: "test -f {{.KUBECONFIG_FILE}}" }
+    - {msg: "Missing kubeconfig", sh: "test -f {{.KUBECONFIG_FILE}}",}
 
   fetch-kubeconfig:
     desc: Fetch Talos K8s kubeconfig file
@@ -116,9 +116,9 @@ tasks:
     requires:
       vars: ["node", "version"]
     preconditions:
-      - { msg: "Node not found", sh: "talosctl --nodes {{.node}} get machineconfig" }
+    - {msg: "Node not found", sh: "talosctl --nodes {{.node}} get machineconfig"}
     status:
-      - talosctl --nodes {{.node}} version --short | grep "Tag:.*{{.version}}"
+    - talosctl --nodes {{.node}} version --short | grep "Tag:.*{{.version}}"
     cmd: |
       talosctl \
           --nodes {{.node}} \
@@ -132,7 +132,7 @@ tasks:
     requires:
       vars: ["node", "version"]
     preconditions:
-      - { msg: "Node not found", sh: "talosctl --nodes {{.node}} get machineconfig" }
+    - {msg: "Node not found", sh: "talosctl --nodes {{.node}} get machineconfig"}
     cmd: |
       talosctl \
           --nodes {{.node}} \
@@ -154,7 +154,7 @@ tasks:
     desc: Wipes Talos nodes entirely so they can be reinstalled by booting into the installer
     prompt: DANGER!!! This will destroy your cluster and reset the nodes... continue?
     dir: "{{.TALOS_DIR}}"
-    cmd: |
+    cmd: |-
       talhelper \
           --config-file $TALCONFIG \
           --extra-flags "--reboot --graceful=false --wait=false" \

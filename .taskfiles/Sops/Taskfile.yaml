@@ -11,7 +11,7 @@ tasks:
     desc: Initialize Age key
     cmd: age-keygen --output {{.AGE_FILE}}
     status:
-      - test -f "{{.AGE_FILE}}"
+    - test -f "{{.AGE_FILE}}"
 
   .encrypt-file:
     internal: true
@@ -19,8 +19,8 @@ tasks:
     requires:
       vars: ["file"]
     preconditions:
-      - { msg: "Missing Sops config file", sh: "test -f {{.SOPS_CONFIG_FILE}}" }
-      - { msg: "Missing Sops age key file", sh: "test -f {{.AGE_FILE}}" }
+    - {msg: "Missing Sops config file", sh: "test -f {{.SOPS_CONFIG_FILE}}"}
+    - {msg: "Missing Sops age key file", sh: "test -f {{.AGE_FILE}}",}
 
   .reset:
     internal: true
