@@ -4,7 +4,7 @@ key_groups: &keys
 
 creation_rules:
 - path_regex: ansible/.*\.sops\.yaml
-  encrypted_regex: "^secret$"
+  encrypted_regex: "^(root_password|secret)$"
   key_groups: *keys
 - path_regex: talos/.*\.sops\.yaml
   key_groups: *keys
