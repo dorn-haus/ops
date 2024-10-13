@@ -55,7 +55,8 @@ in
         desc = "Bootstrap Talos: #3 - bootstrap k8s cluster";
         cmd = ''
           echo "Installing Talos... this might take a while and print errors"
-          until ${talhelper} gencommand bootstrap --config-file=$TALCONFIG | ${bash}
+          until ${talhelper} gencommand bootstrap --config-file="$TALCONFIG" |
+            ${bash}
           do ${sleep} 2
           done
         '';
@@ -65,7 +66,8 @@ in
         desc = "Fetch Talos Kubernetes kubeconfig file";
         cmd = ''
           until ${talhelper} gencommand kubeconfig --config-file="$TALCONFIG" --out-dir=${state} \
-            --extra-flags="--merge=false --force $KUBECONFIG" | ${bash}
+            --extra-flags="--merge=false --force $KUBECONFIG" |
+            ${bash}
           do ${sleep} 2
           done
         '';
@@ -98,8 +100,9 @@ in
       apply = {
         desc = "Apply Talos config to all nodes";
         cmd = ''
-          ${talhelper} gencommand apply --config-file=$TALCONFIG --out-dir=${state} --extra-flags={{.extra_flags}} \
-          | ${bash}
+          ${talhelper} gencommand apply \
+            --config-file="$TALCONFIG" --out-dir=${state} --extra-flags="{{.extra_flags}}" |
+            ${bash}
         '';
       };
 
@@ -170,6 +173,17 @@ in
         in [check];
         cmd = ''
           ${talosctl} kpgrade-k8s --nodes={{.node}} --to=v{{.version}}
+        '';
+      };
+
+      reset = {
+        desc = "Resets Talos nodes back to maintenance mode";
+        prompt = "Are you sure? This will destroy your cluster and reset the nodes back to maintenance mode.";
+        cmd = ''
+          ${talhelper} gencommand reset \
+            --config-file=$TALCONFIG \
+            --extra-flags="--reboot --system-labels-to-wipe=STATE --system-labels-to-wipe=EPHEMERAL --graceful=false --wait=false" |
+            ${bash}
         '';
       };
     };
