@@ -41,7 +41,7 @@ in
           network = with cluster.network; {
             podSubnets = with pod; [cidr4 cidr6];
             serviceSubnets = with service; [cidr4 cidr6];
-            cni = {name = "none";}; # cilium
+            cni = {name = "none";}; # we use cilium
           };
         };
       })
