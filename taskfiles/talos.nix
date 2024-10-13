@@ -145,10 +145,10 @@ in
         in [check];
         cmd = ''
           ${talosctl} upgrade \
-              --nodes={{.node}} \
-              --image=ghcr.io/siderolabs/installer:{{.version}} \
-              --reboot-mode=default \
-              --preserve=true
+            --nodes={{.node}} \
+            --image=ghcr.io/siderolabs/installer:v{{.version}} \
+            --reboot-mode=default \
+            --preserve=true
         '';
       };
 
@@ -169,7 +169,7 @@ in
           '';
         in [check];
         cmd = ''
-          ${talosctl} kpgrade-k8s --nodes={{.node}} --to={{.version}}
+          ${talosctl} kpgrade-k8s --nodes={{.node}} --to=v{{.version}}
         '';
       };
     };
