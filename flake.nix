@@ -44,9 +44,8 @@
         system,
         ...
       }: let
-        # TODO: Deal with system/pkgs more nicely.
-        taskfile-yaml = import ./taskfiles {inherit pkgs;};
-        talconfig-yaml = import ./talos/talconfig.nix {inherit pkgs;};
+        talhelper = inputs'.talhelper.packages.default;
+        taskfile-yaml = import ./taskfiles {pkgs = pkgs // {inherit talhelper;};};
       in {
         packages = {
           task = pkgs.writeShellScriptBin "task" ''
@@ -61,10 +60,8 @@
           in
             pkgs.lib.mkIf (devenvRootFileContent != "") devenvRootFileContent;
 
-          env = let
-            talconfig-yaml = import ./talos/talconfig.nix {inherit pkgs;};
-          in {
-            TALCONFIG = "${talconfig-yaml}";
+          env = {
+            # TODO!
           };
 
           imports = [
@@ -75,7 +72,6 @@
 
           # https://devenv.sh/reference/options/
           packages = with pkgs; [
-            (talhelper.packages.${system}.default)
             (wrapHelm kubernetes-helm {
               plugins = with kubernetes-helmPlugins; [
                 helm-diff
@@ -92,13 +88,14 @@
             jq
             kubectl
             sops
+            talhelper
             talosctl
-            yq-go
             yq
+            yq-go
           ];
 
           enterShell = ''
-            export TALCONFIG="${talconfig-yaml}"
+            export TALOSCONFIG=$DEVENV_STATE/talos/talosconfig
           '';
         };
       };
@@ -165,5 +162,5 @@
 #     });
 # }
 #
-# DEBUG: 4
+# DEBUG: 6
 
