@@ -9,7 +9,9 @@
 
     devenv.url = "github:cachix/devenv";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    nixpkgs.url = "github:cachix/devenv-nixpkgs/rolling";
+
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs-devenv.url = "github:cachix/devenv-nixpkgs/rolling";
 
     talhelper.url = "github:budimanjojo/talhelper";
   };
@@ -23,6 +25,7 @@
     self,
     flake-parts,
     devenv-root,
+    nixpkgs-devenv,
     ...
   }:
     flake-parts.lib.mkFlake {inherit inputs;} {
@@ -37,15 +40,16 @@
         system,
         ...
       }: let
-        inherit (pkgs.lib) getExe';
+        pkgs-devenv = import nixpkgs-devenv {inherit system;};
 
         talhelper = inputs'.talhelper.packages.default;
 
-        talconfig-yaml = import ./talos/talconfig.nix {inherit pkgs;};
-        taskfile-yaml = import ./taskfiles {pkgs = pkgs // {inherit talhelper;};};
+        params = {pkgs = pkgs // {inherit talhelper;};};
+        talconfig-yaml = import ./talos/talconfig.nix params;
+        taskfile-yaml = import ./taskfiles params;
       in {
         packages.task-wrapper = pkgs.writeShellScriptBin "task" ''
-          ${getExe' pkgs.go-task "task"} --taskfile=${taskfile-yaml} $@
+          ${pkgs.lib.getExe' pkgs-devenv.go-task "task"} --taskfile=${taskfile-yaml} $@
         '';
 
         devenv.shells.default = {
