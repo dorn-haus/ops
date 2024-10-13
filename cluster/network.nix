@@ -2,8 +2,8 @@ let
   toCIDR = net: len: "${net}/${toString len}";
 in {
   node = rec {
-    net4 = "192.168.8.0";
-    net4Len = 16;
+    net4 = "10.8.0.0";
+    net4Len = 8;
     cidr4 = toCIDR net4 net4Len;
 
     net6 = "fd10:8::";
@@ -29,7 +29,7 @@ in {
     cidr6 = toCIDR net6 net6Len;
   };
   uplink = {
-    gw4 = "192.168.1.1";
-    gw6 = "fe80::924d:4aff:fecc:ef8b";
+    gw4 = "10.0.0.1";
+    gw6 = "fe80::3a35:fbff:fe0d:c7bf";
   };
 }

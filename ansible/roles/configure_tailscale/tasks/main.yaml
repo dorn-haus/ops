@@ -36,7 +36,7 @@
     - --accept-routes=false
     - --accept-dns=false
     jumphost_args:
-    - --advertise-routes=fd10:8::/64,192.168.8.0/24
+    - --advertise-routes=fd10:8::/64,10.8.0.0/24
     - --ssh
   ansible.builtin.command:
     argv: "{{ all_args + (jumphost_args if (jumphost is defined and jumphost | bool) else []) }}"
