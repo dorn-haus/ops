@@ -30,7 +30,15 @@ in
       networkInterfaces = [
         {
           deviceSelector.hardwareAddr = node.mac;
-          dhcp = true;
+          addresses = [node.net4];
+          routes = [
+            {
+              network = "0.0.0.0/0";
+              gateway = cluster.network.uplink.gw4;
+            }
+            # IPv6 default route is auto-configured.
+          ];
+          dhcp = false;
         }
       ];
     }) (cp ++ workers);
@@ -44,6 +52,12 @@ in
             cni = {name = "none";}; # we use cilium
           };
         };
+        machine.network.nameservers = [
+          "1.1.1.1"
+          "9.9.9.9"
+          "2606:4700:4700::1111"
+          "2620:fe::fe"
+        ];
       })
     ];
   }
