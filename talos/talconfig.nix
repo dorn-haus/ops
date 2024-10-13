@@ -12,7 +12,7 @@
 in
   writeYAML "talconfig.yaml" {
     clusterName = cluster.name;
-    talosVersion = "v1.8.0";
+    talosVersion = "v1.8.1";
     kubernetesVersion = "v1.31.1";
     endpoint = "https://${first.ipv4}:6443";
     domain = cluster.domain;
