@@ -111,7 +111,7 @@ Cloudflare sits in front of the them and provides IPv4 connectivity.
 For the service and pod subnets, I'm using IPv6-only networks too:
 
 - `fd10:96::/108` in place of the usual `10.96.0.0/12` service subnet.
-- `fd10:244::/64` in place of the usual `10.244.0.0/16` pod subnet.
+- `fd10:244::/56` in place of the usual `10.244.0.0/16` pod subnet.
 
 Currently `pool.ntp.org` has no AAAA records, so I'm using
 `time.cloudflare.com` for time servers.

@@ -1,4 +1,4 @@
-{pkgs, ...}: let
+inputs @ {pkgs, ...}: let
   inherit (pkgs.lib) getExe getExe';
 
   bash = getExe pkgs.bash;
@@ -76,7 +76,7 @@ in
       install-cilium = {
         desc = "Bootstrap Talos: #4 - install cilium";
         cmd = let
-          helmfile-yaml = ./apps/helmfile.nix;
+          helmfile-yaml = import ./apps/helmfile.nix inputs;
         in ''
           # Wait for nodes to report not ready.
           # CNI is disabled initially, hence the nodes are not expected to be in ready state.
