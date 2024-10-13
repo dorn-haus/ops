@@ -1,4 +1,6 @@
 {pkgs, ...}: let
+  cluster = import ../../cluster;
+
   writeYAML = (pkgs.formats.yaml {}).generate;
 in
   writeYAML "taskfile.yaml" {
@@ -30,8 +32,8 @@ in
     autoDirectNodeRoutes = true;
     ipv4.enabled = true; # default = true
     ipv6.enabled = true; # default = false
-    ipv4NativeRoutingCIDR = "10.244.0.0/16";
-    ipv6NativeRoutingCIDR = "fd10:244::/56";
+    ipv4NativeRoutingCIDR = cluster.network.pod.cidr4;
+    ipv6NativeRoutingCIDR = cluster.network.pod.cidr6;
 
     # Export metrics on IPv6 addresses.
     kubeProxyReplacementHealthzBindAddr = "[::]:10256";
