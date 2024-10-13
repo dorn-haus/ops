@@ -18,8 +18,8 @@
   when: ansible_facts["os_family"] | lower == "alpine"
   vars:
     ipv4:
-      addr: "{{ ansible_host }}/16"
-      gateway: 192.168.1.1
+      addr: "{{ ansible_host | replace('192.168.8', '10.8.0') }}/8"
+      gateway: 10.0.0.1
       nameservers:
       - 1.1.1.1
       - 8.8.8.8

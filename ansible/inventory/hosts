@@ -1,17 +1,12 @@
-[jumphosts]
-jmpa        ansible_host=192.168.4.1    eui64_addr=fd10:8::ba27:ebff:fe69:d702  jumphost=true
-jmpb        ansible_host=192.168.4.2    eui64_addr=fd10:8::0280:64ff:fecc:2540  jumphost=true
-
 [alpine]
-locker-02   ansible_host=192.168.8.2    eui64_addr=fd10:8::0280:64ff:fee7:830c  jumphost=false
-locker-04   ansible_host=192.168.8.4    eui64_addr=fd10:8::028c:faff:fed1:df1d  jumphost=false
-locker-05   ansible_host=192.168.8.5    eui64_addr=fd10:8::028c:faff:fed3:d056  jumphost=false
-locker-08   ansible_host=192.168.8.8    eui64_addr=fd10:8::4e52:62ff:fe12:000d  jumphost=false
-locker-09   ansible_host=192.168.8.9    eui64_addr=fd10:8::4e52:62ff:fe12:35bb  jumphost=false
-locker-10   ansible_host=192.168.8.10   eui64_addr=fd10:8::4e52:62ff:fe11:1060  jumphost=false
-
-[alpine:children]
-jumphosts
+locker-02   ansible_host=10.8.0.2   eui64_addr=fd10:8::0280:64ff:fee7:830c
+locker-03   ansible_host=10.8.0.3   eui64_addr=fd10:8::8c8e:99ff:fee6:48e0
+locker-04   ansible_host=10.8.0.4   eui64_addr=fd10:8::028c:faff:fed1:df1d
+locker-05   ansible_host=10.8.0.5   eui64_addr=fd10:8::028c:faff:fed3:d056
+locker-08   ansible_host=10.8.0.8   eui64_addr=fd10:8::4e52:62ff:fe12:000d
+locker-09   ansible_host=10.8.0.9   eui64_addr=fd10:8::4e52:62ff:fe12:35bb
+locker-10   ansible_host=10.8.0.10  eui64_addr=fd10:8::4e52:62ff:fe11:1060
+#locker-11   ansible_host=10.8.0.11  eui64_addr=fd10:8::0280:64ff:fecc:2540 # was: jmpb
 
 [all:children]
 alpine
