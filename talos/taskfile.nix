@@ -75,14 +75,16 @@ in
 
       install-cilium = {
         desc = "Bootstrap Talos: #4 - install cilium";
-        cmd = ''
+        cmd = let
+          helmfile-yaml = ./apps/helmfile.nix;
+        in ''
           # Wait for nodes to report not ready.
           # CNI is disabled initially, hence the nodes are not expected to be in ready state.
           until ${kubectl} wait --for=condition=Ready=false nodes --all --timeout=160s
           do ${sleep} 2
           done
 
-          ${helmfile} --file apps/helmfile.yaml apply --skip-diff-on-install --suppress-diff
+          ${helmfile} apply --file=${helmfile-yaml} --skip-diff-on-install --suppress-diff
 
           # Wait until all nodes report ready.
           until ${kubectl} wait --for=condition=Ready nodes --all --timeout=120s

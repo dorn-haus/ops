@@ -10,7 +10,7 @@ in
     };
 
     includes = {
-      sops = import ./sops.nix inputs;
-      talos = import ./talos.nix inputs;
+      sops = import ./sops/taskfile.nix inputs;
+      talos = import ./talos/taskfile.nix inputs;
     };
   }

@@ -46,7 +46,7 @@
 
         params = {pkgs = pkgs // {inherit talhelper;};};
         talconfig-yaml = import ./talos/talconfig.nix params;
-        taskfile-yaml = import ./taskfiles params;
+        taskfile-yaml = import ./taskfile.nix params;
       in {
         packages.task-wrapper = pkgs.writeShellScriptBin "task" ''
           ${pkgs.lib.getExe' pkgs-devenv.go-task "task"} --taskfile=${taskfile-yaml} $@
