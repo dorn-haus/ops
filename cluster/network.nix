@@ -16,7 +16,7 @@ in {
     cidr4 = toCIDR net4 net4Len;
 
     net6 = "fd10:244::";
-    net6Len = 64;
+    net6Len = 56;
     cidr6 = toCIDR net6 net6Len;
   };
   service = rec {
