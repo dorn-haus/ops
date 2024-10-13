@@ -139,18 +139,18 @@ in
             msg = "Talos node not found.";
           }
         ];
-        status = let
-          check = ''
+        status = [
+          ''
             ${talosctl} version --nodes={{.node}} --json |
             ${jq} -r .version.tag |
             ${grep} 'v{{.version}}
-          '';
-        in [check];
+          ''
+        ];
         cmd = ''
           ${talosctl} upgrade \
             --nodes={{.node}} \
             --image=ghcr.io/siderolabs/installer:v{{.version}} \
-            --reboot-mode=default \
+            --reboot-mode=powercycle \
             --preserve=true
         '';
       };
@@ -164,13 +164,13 @@ in
             msg = "Talos node not found.";
           }
         ];
-        status = let
-          check = ''
+        status = [
+          ''
             ${kubectl} get node -ojson |
             ${jq} -r '.items[] | select(.metadata.name == "{{.node}}").status.nodeInfo.kubeletVersion' |
             ${grep} 'v{{.version}}
-          '';
-        in [check];
+          ''
+        ];
         cmd = ''
           ${talosctl} kpgrade-k8s --nodes={{.node}} --to=v{{.version}}
         '';
