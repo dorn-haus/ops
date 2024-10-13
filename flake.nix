@@ -9,11 +9,6 @@
 
     devenv.url = "github:cachix/devenv";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
-    nix2container = {
-      url = "github:nlewo/nix2container";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     nixpkgs.url = "github:cachix/devenv-nixpkgs/rolling";
 
     talhelper.url = "github:budimanjojo/talhelper";
