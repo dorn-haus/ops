@@ -29,7 +29,7 @@ in
       installDiskSelector.type = "ssd";
       networkInterfaces = [
         {
-          deviceSelector.hardwareAddr = "*";
+          deviceSelector.hardwareAddr = node.mac;
           dhcp = true;
         }
       ];
