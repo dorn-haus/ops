@@ -1,7 +1,7 @@
 inputs @ {pkgs, ...}: let
   writeYAML = (pkgs.formats.yaml {}).generate;
 in
-  writeYAML "taskfile.yaml" {
+  writeYAML "helmfile.yaml" {
     repositories = [
       {
         name = "cilium";
