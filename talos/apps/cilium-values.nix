@@ -3,7 +3,7 @@
 
   writeYAML = (pkgs.formats.yaml {}).generate;
 in
-  writeYAML "taskfile.yaml" {
+  writeYAML "cilium-values.yaml" {
     # Use KubePrism.
     # TODO: Should work via IPv6 as well.
     k8sServiceHost = "127.0.0.1";
