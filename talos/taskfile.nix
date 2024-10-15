@@ -3,6 +3,7 @@ inputs @ {pkgs, ...}: let
 
   bash = getExe pkgs.bash;
   cilium = getExe pkgs.cilium-cli;
+  flux = getExe pkgs.fluxcd;
   grep = getExe' pkgs.gnugrep "grep";
   helmfile = getExe pkgs.helmfile;
   jq = getExe pkgs.jq;
@@ -22,20 +23,43 @@ in
   writeYAML "taskfile.yaml" {
     version = 3;
 
-    tasks = {
+    tasks = let
+      node-exists = {
+        sh = "${talosctl} get machineconfig --nodes={{.node}}";
+        msg = "Talos node not found.";
+      };
+      kubeconfig-exists = {
+        sh = "${test} -f $KUBECONFIG";
+        msg = "Missing kubeconfig, run `task talos:fetch-kubeconfig` to fetch it.";
+      };
+    in {
       bootstrap = {
         desc = "Bootstrap Talos cluster";
-        cmds = [
+        cmds = let
+          # Wait for nodes to report not ready.
+          # CNI is disabled initially, hence the nodes are not expected to be in ready state.
+          waitForNodes = ready: ''
+            if [ "{{.wait}}" = "true" ]; then
+              until ${kubectl} wait --for=condition=Ready=${
+              if ready
+              then "true"
+              else "false"
+            } nodes --all --timeout=120s
+                do ${sleep} 2
+              done
+            fi
+          '';
+        in [
           # TODO: gensecret
           {task = "genconfig";}
           {task = "apply-insecure";}
           {task = "install-k8s";}
           {task = "fetch-kubeconfig";}
-          {
-            task = "install-cilium";
-            vars.wait = "true";
-          }
+          (waitForNodes false)
+          {task = "install-cilium";}
+          (waitForNodes true)
           "${talosctl} health --server=false"
+          {task = "install-flux";}
         ];
       };
 
@@ -79,35 +103,30 @@ in
 
       install-cilium = {
         desc = "Bootstrap Talos: #4 - install cilium";
-        vars.wait = "{{.wait | default false}}";
         cmds = let
           helmfile-yaml = import ./apps/helmfile.nix inputs;
-
-          # Wait for nodes to report not ready.
-          # CNI is disabled initially, hence the nodes are not expected to be in ready state.
-          waitFor = ready: ''
-            if [ "{{.wait}}" = "true" ]; then
-              until ${kubectl} wait --for=condition=Ready=${
-              if ready
-              then "true"
-              else "false"
-            } nodes --all --timeout=120s
-                do ${sleep} 2
-              done
-            fi
-          '';
         in [
-          (waitFor false)
           "${helmfile} apply --file=${helmfile-yaml} --skip-diff-on-install --suppress-diff"
           "${cilium} status --wait"
-          (waitFor true)
         ];
-        preconditions = [
-          {
-            sh = "${test} -f $KUBECONFIG";
-            msg = "Missing kubeconfig, run `task talos:fetch-kubeconfig` to fetch it.";
-          }
-        ];
+        preconditions = [kubeconfig-exists];
+      };
+
+      install-flux = {
+        # TODO: Try to get the Flux token from Bitwarden.
+        desc = "Bootstrap Talos: #5 - install flux";
+        cmd = let
+          cluster = import ../cluster;
+        in ''
+          ${flux} bootstrap github \
+            --owner=${cluster.github.owner} \
+            --repository=${cluster.github.repository} \
+            --branch=flux \
+            --path=./flux \
+            --cluster-domain=${cluster.domain} \
+            --personal
+        '';
+        preconditions = [kubeconfig-exists];
       };
 
       apply = {
@@ -146,12 +165,7 @@ in
       upgrade-talos = {
         desc = "Upgrade Talos on a node";
         requires.vars = ["node" "version"];
-        preconditions = [
-          {
-            sh = "${talosctl} get machineconfig --nodes={{.node}}";
-            msg = "Talos node not found.";
-          }
-        ];
+        preconditions = [node-exists];
         status = [
           ''
             ${talosctl} version --nodes={{.node}} --json |
@@ -171,12 +185,7 @@ in
       upgrade-k8s = {
         desc = "Upgrade Kubernetes on a node";
         requires.vars = ["node" "version"];
-        preconditions = [
-          {
-            sh = "${talosctl} get machineconfig --nodes={{.node}}";
-            msg = "Talos node not found.";
-          }
-        ];
+        preconditions = [node-exists];
         status = [
           ''
             ${kubectl} get node -ojson |
