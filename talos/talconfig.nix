@@ -5,94 +5,61 @@
   hosts = import ../cluster/hosts {inherit pkgs;};
   writeYAML = (pkgs.formats.yaml {}).generate;
 
-  sans = [
-    "::" # api-server
-    "::1" # controller-manager, scheduler
-  ];
+  first = builtins.head hosts.control_plane;
+
+  cp = map (node: node // {cp = true;}) hosts.control_plane;
+  workers = map (node: node // {cp = false;}) hosts.workers;
 in
   writeYAML "talconfig.yaml" {
     clusterName = cluster.name;
-    talosVersion = "v1.6.5";
-    kubernetesVersion = "v1.29.2";
-    endpoint = "https://[${(builtins.head hosts.control_plane).ipv6}]:6443";
+    talosVersion = "v1.8.1";
+    kubernetesVersion = "v1.31.1";
+    endpoint = "https://${first.ipv4}:6443";
     domain = cluster.domain;
-
-    cniConfig = {
-      # Disable Flannel CNI.
-      # This is necessary in order to enable Cilium CNI.
-      name = "none";
-    };
-
-    additionalMachineCertSans = sans;
-    additionalApiServerCertSans = sans;
 
     # Allow running jobs on control plane nodes.
     # Currently the control plane nodes don't do much anyway.
     allowSchedulingOnControlPlanes = true;
 
-    nodes =
-      map (node: {
-        inherit (node) hostname;
-        ipAddress = node.ipv6;
-        controlPlane = true;
-        installDisk = "/dev/sda";
-        networkInterfaces = [
-          {
-            deviceSelector.hardwareAddr = "*";
-            dhcp = false;
-          }
-        ];
-      })
-      hosts.control_plane;
+    nodes = map (node: {
+      inherit (node) hostname;
+      controlPlane = node.cp;
+
+      ipAddress = node.ipv4;
+      installDiskSelector.type = "ssd";
+      networkInterfaces = [
+        {
+          deviceSelector.hardwareAddr = node.mac;
+          addresses = [node.net4];
+          routes = [
+            {
+              network = "0.0.0.0/0";
+              gateway = cluster.network.uplink.gw4;
+            }
+            # IPv6 default route is auto-configured.
+          ];
+          dhcp = false;
+        }
+      ];
+    }) (cp ++ workers);
 
     patches = [
       (toYAML {} {
         cluster = {
           network = with cluster.network; {
-            podSubnets = [pod.cidr];
-            serviceSubnets = [service.cidr];
+            podSubnets = with pod; [cidr4 cidr6];
+            serviceSubnets = with service; [cidr4 cidr6];
+            cni.name = "none"; # we use cilium
           };
-
-          # Disable kube-proxy, since we're using
-          # Cilium's kube-proxy replacement functionality.
+          # Use Cilium's KubeProxy replacement.
           proxy.disabled = true;
-
-          # Prefer IPv6 all interfaces.
-          # TODO: Set up firewall rules to make sure this is not accessible
-          # through the external interfaces (via the IPv6 pinholing setup.)
-          apiServer.extraArgs.bind-address = "::";
-          # Prefer IPv6 loopback for controller-manager and scheduler:
-          controllerManager.extraArgs.bind-address = "::1";
-          scheduler.extraArgs.bind-address = "::1";
         };
-        machine = {
-          # IPv6-enabled time server:
-          time.servers = ["time.cloudflare.com"];
-          network = {
-            nameservers = [
-              "2001:4860:4860::8844" # Google / 2
-              "2606:4700:4700::1001" # Cloudflare / 2
-            ];
-            extraHostEntries = with hosts.bastion; [
-              {
-                ip = ipv6;
-                aliases = [
-                  hostname
-                  "${hostname}.${cluster.domain}"
-                ];
-              }
-            ];
-          };
-          # Prevent the kubelet from using any other address range.
-          # Otherwise the kubelet might pick the auto-configured ::ffff:0:0/96
-          # range, which has no routes configured so requests would fail.
-          kubelet.nodeIP.validSubnets = [cluster.network.node.cidr];
-          env = rec {
-            # TODO: squid.port!
-            http_proxy = "${hosts.bastion.hostname}:3128";
-            https_proxy = http_proxy;
-          };
-        };
+        machine.network.nameservers = [
+          "1.1.1.1"
+          "9.9.9.9"
+          "2606:4700:4700::1111"
+          "2620:fe::fe"
+        ];
       })
     ];
   }

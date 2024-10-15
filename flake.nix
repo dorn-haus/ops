@@ -1,52 +1,113 @@
 {
-  description = "DH8 K8S dev env";
+  description = "Dornhaus home lab";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils/v1.0.0";
+    devenv-root = {
+      url = "file+file:///dev/null";
+      flake = false;
+    };
+
+    devenv.url = "github:cachix/devenv";
+    flake-parts.url = "github:hercules-ci/flake-parts";
+    mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
+    nix2container = {
+      url = "github:nlewo/nix2container";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs-devenv.url = "github:cachix/devenv-nixpkgs/rolling";
+
     talhelper.url = "github:budimanjojo/talhelper";
   };
 
-  outputs = {
+  nixConfig = {
+    extra-trusted-public-keys = "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw=";
+    extra-substituters = "https://devenv.cachix.org";
+  };
+
+  outputs = inputs @ {
     self,
-    nixpkgs,
-    flake-utils,
-    talhelper,
+    flake-parts,
+    devenv-root,
+    nixpkgs-devenv,
     ...
   }:
-    flake-utils.lib.eachDefaultSystem (system: let
-      lib = nixpkgs.lib;
-      pkgs = import nixpkgs {inherit system;};
+    flake-parts.lib.mkFlake {inherit inputs;} {
+      imports = [inputs.devenv.flakeModule];
+      systems = ["x86_64-linux"];
 
-      talconfig-yaml = import ./talos/talconfig.nix {inherit pkgs;};
-    in {
-      devShells.default = pkgs.mkShell {
-        buildInputs = with pkgs; [
-          (talhelper.packages.${system}.default)
-          (wrapHelm kubernetes-helm {
-            plugins = with kubernetes-helmPlugins; [
-              helm-diff
-            ];
-          })
+      perSystem = {
+        config,
+        self',
+        inputs',
+        pkgs,
+        system,
+        ...
+      }: let
+        pkgs-devenv = import nixpkgs-devenv {inherit system;};
 
-          age
-          alejandra
-          fluxcd
-          go-task
-          helmfile
-          jq
-          kubectl
-          sops
-          talosctl
-          yq-go
-          yq
-        ];
+        talhelper = inputs'.talhelper.packages.default;
 
-        shellHook = ''
-          export TALCONFIG="${talconfig-yaml}"
+        params = {pkgs = pkgs // {inherit talhelper;};};
+        talconfig-yaml = import ./talos/talconfig.nix params;
+        taskfile-yaml = import ./taskfile.nix params;
+
+        task-wrapper = pkgs.writeShellScriptBin "task" ''
+          ${pkgs.lib.getExe' pkgs-devenv.go-task "task"} --taskfile=${taskfile-yaml} $@
         '';
-      };
+      in {
+        packages.default = task-wrapper;
+        apps.default = {
+          type = "app";
+          program = pkgs.lib.getExe task-wrapper;
+        };
 
-      packages = {inherit talconfig-yaml;};
-    });
+        devenv.shells.default = {
+          name = "homelab";
+          devenv.root = let
+            devenvRootFileContent = builtins.readFile devenv-root.outPath;
+          in
+            pkgs.lib.mkIf (devenvRootFileContent != "") devenvRootFileContent;
+
+          imports = [
+            # https://devenv.sh/guides/using-with-flake-parts/#import-a-devenv-module
+          ];
+
+          packages = with pkgs; [
+            task-wrapper
+
+            age
+            alejandra
+            ansible
+            cilium-cli
+            fluxcd
+            helmfile
+            jq
+            kubectl
+            sops
+            talhelper
+            talosctl
+            yq
+            yq-go
+
+            (wrapHelm kubernetes-helm {
+              plugins = with kubernetes-helmPlugins; [
+                helm-diff
+              ];
+            })
+          ];
+
+          env = {
+            TALCONFIG = talconfig-yaml;
+            TALSECRET = ./talos/talsecret.sops.yaml;
+          };
+
+          enterShell = ''
+            export KUBECONFIG=$DEVENV_STATE/talos/kubeconfig
+            export TALOSCONFIG=$DEVENV_STATE/talos/talosconfig
+          '';
+        };
+      };
+    };
 }

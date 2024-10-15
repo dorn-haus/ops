@@ -1,5 +1,7 @@
 *_
+.devenv
 .direnv
 age.key
 kubeconfig
 result
+talos/clusterconfig
