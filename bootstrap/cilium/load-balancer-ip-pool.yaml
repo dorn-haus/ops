@@ -1,0 +1,21 @@
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: locker-nat
+  namespace: kube-system
+spec:
+  blocks:
+  - cidr: 10.10.10.10/32
+  serviceSelector:
+    matchLabels:
+      io.kubernetes.service.namespace: ingress-nginx
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: locker-ips
+  namespace: kube-system
+spec:
+  blocks:
+  - cidr: 10.10.0.0/16
