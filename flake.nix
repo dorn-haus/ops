@@ -57,7 +57,7 @@
           ${pkgs.lib.getExe' pkgs-devenv.go-task "task"} --taskfile=${taskfile-yaml} $@
         '';
       in {
-        packages = {inherit task-wrapper;};
+        packages.default = task-wrapper;
         apps.default = {
           type = "app";
           program = pkgs.lib.getExe task-wrapper;
@@ -75,12 +75,7 @@
           ];
 
           packages = with pkgs; [
-            (wrapHelm kubernetes-helm {
-              plugins = with kubernetes-helmPlugins; [
-                helm-diff
-              ];
-            })
-            config.packages.task-wrapper
+            task-wrapper
 
             age
             alejandra
@@ -95,6 +90,12 @@
             talosctl
             yq
             yq-go
+
+            (wrapHelm kubernetes-helm {
+              plugins = with kubernetes-helmPlugins; [
+                helm-diff
+              ];
+            })
           ];
 
           env = {
