@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  check:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -30,6 +30,3 @@ jobs:
 
     - name: Build Nix flake (slow)
       run: nix build
-
-    - name: Run Nix flake (prints tasks)
-      run: nix run
