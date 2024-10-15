@@ -8,6 +8,8 @@ in
     # TODO: Should work via IPv6 as well.
     k8sServiceHost = "127.0.0.1";
     k8sServicePort = 7445;
+    kubeProxyReplacement = true;
+    kubeProxyReplacementHealthzBindAddr = "[::]:10256";
 
     cgroup = {
       # Mount CGroup at a different location.
@@ -22,10 +24,6 @@ in
     # Disable Hubble.
     hubble.enabled = false;
 
-    # IP Address Management.
-    # TODO: We should be using the default (cluster-scope).
-    ipam.mode = "kubernetes";
-
     # Enable native routing.
     # This can be done because all nodes are on the same L2 network.
     routingMode = "native";
@@ -35,8 +33,16 @@ in
     ipv4NativeRoutingCIDR = cluster.network.pod.cidr4;
     ipv6NativeRoutingCIDR = cluster.network.pod.cidr6;
 
-    # Export metrics on IPv6 addresses.
-    kubeProxyReplacementHealthzBindAddr = "[::]:10256";
+    # Use L2 Announcements.
+    l2announcements.enabled = true;
+    externalIPs.enabled = true;
+
+    # IPAM: Use cluster-scope (default).
+    # Limit the pod CIDRs to avoid conflic with the node network.
+    # The default pod CIDR is 10.0.0.0/8, which shadows the node network.
+    ipam.operator.clusterPoolIPv4PodCIDRList = cluster.network.pod.cidr4;
+
+    loadBalancer.acceleration = "best-effort";
 
     # Enable local redirect policy.
     localRedirectPolicy = true;

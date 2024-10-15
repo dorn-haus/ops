@@ -2,6 +2,7 @@ inputs @ {pkgs, ...}: let
   inherit (pkgs.lib) getExe getExe';
 
   bash = getExe pkgs.bash;
+  cilium = getExe pkgs.cilium-cli;
   grep = getExe' pkgs.gnugrep "grep";
   helmfile = getExe pkgs.helmfile;
   jq = getExe pkgs.jq;
@@ -30,7 +31,10 @@ in
           {task = "apply-insecure";}
           {task = "install-k8s";}
           {task = "fetch-kubeconfig";}
-          {task = "install-cilium";}
+          {
+            task = "install-cilium";
+            vars.wait = "true";
+          }
           "${talosctl} health --server=false"
         ];
       };
@@ -47,17 +51,17 @@ in
         desc = "Bootstrap Talos: #2 - apply initial config";
         cmd = {
           task = "apply";
-          vars = {extra_flags = "--insecure";};
+          vars.extra_flags = "--insecure";
         };
       };
 
       install-k8s = {
         desc = "Bootstrap Talos: #3 - bootstrap k8s cluster";
         cmd = ''
-          echo "Installing Talos... this might take a while and print errors"
+          echo "Installing Talos, this might take a while and print errors"
           until ${talhelper} gencommand bootstrap --config-file="$TALCONFIG" |
             ${bash}
-          do ${sleep} 2
+            do ${sleep} 2
           done
         '';
       };
@@ -68,29 +72,36 @@ in
           until ${talhelper} gencommand kubeconfig --config-file="$TALCONFIG" --out-dir=${state} \
             --extra-flags="--merge=false --force $KUBECONFIG" |
             ${bash}
-          do ${sleep} 2
+            do ${sleep} 2
           done
         '';
       };
 
       install-cilium = {
         desc = "Bootstrap Talos: #4 - install cilium";
-        cmd = let
+        vars.wait = "{{.wait | default false}}";
+        cmds = let
           helmfile-yaml = import ./apps/helmfile.nix inputs;
-        in ''
+
           # Wait for nodes to report not ready.
           # CNI is disabled initially, hence the nodes are not expected to be in ready state.
-          until ${kubectl} wait --for=condition=Ready=false nodes --all --timeout=160s
-          do ${sleep} 2
-          done
-
-          ${helmfile} apply --file=${helmfile-yaml} --skip-diff-on-install --suppress-diff
-
-          # Wait until all nodes report ready.
-          until ${kubectl} wait --for=condition=Ready nodes --all --timeout=120s
-          do ${sleep} 2
-          done
-        '';
+          waitFor = ready: ''
+            if [ "{{.wait}}" = "true" ]; then
+              until ${kubectl} wait --for=condition=Ready=${
+              if ready
+              then "true"
+              else "false"
+            } nodes --all --timeout=120s
+                do ${sleep} 2
+              done
+            fi
+          '';
+        in [
+          (waitFor false)
+          "${helmfile} apply --file=${helmfile-yaml} --skip-diff-on-install --suppress-diff"
+          "${cilium} status --wait"
+          (waitFor true)
+        ];
         preconditions = [
           {
             sh = "${test} -f $KUBECONFIG";
@@ -112,7 +123,7 @@ in
         desc = "Diff Talos config on all nodes";
         cmd = {
           task = "apply";
-          vars = {extra_flags = "--dry-run";};
+          vars.extra_flags = "--dry-run";
         };
       };
 

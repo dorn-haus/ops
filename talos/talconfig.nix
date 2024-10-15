@@ -49,8 +49,10 @@ in
           network = with cluster.network; {
             podSubnets = with pod; [cidr4 cidr6];
             serviceSubnets = with service; [cidr4 cidr6];
-            cni = {name = "none";}; # we use cilium
+            cni.name = "none"; # we use cilium
           };
+          # Use Cilium's KubeProxy replacement.
+          proxy.disabled = true;
         };
         machine.network.nameservers = [
           "1.1.1.1"
