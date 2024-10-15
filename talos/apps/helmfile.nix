@@ -13,7 +13,7 @@ in
         name = "cilium";
         namespace = "kube-system";
         chart = "cilium/cilium";
-        version = "1.16.2";
+        version = "1.16.3";
         wait = true;
         values = [
           (import ./cilium-values.nix inputs)
