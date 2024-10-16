@@ -1,14 +1,10 @@
-{pkgs, ...}: let
+inputs @ {pkgs, ...}: let
   inherit (pkgs.lib.generators) toYAML;
 
-  cluster = import ../cluster;
-  hosts = import ../cluster/hosts {inherit pkgs;};
+  cluster = import ../cluster inputs;
   writeYAML = (pkgs.formats.yaml {}).generate;
 
-  first = builtins.head hosts.control_plane;
-
-  cp = map (node: node // {cp = true;}) hosts.control_plane;
-  workers = map (node: node // {cp = false;}) hosts.workers;
+  first = builtins.head cluster.nodes.cplane;
 in
   writeYAML "talconfig.yaml" {
     clusterName = cluster.name;
@@ -21,27 +17,29 @@ in
     # Currently the control plane nodes don't do much anyway.
     allowSchedulingOnControlPlanes = true;
 
-    nodes = map (node: {
-      inherit (node) hostname;
-      controlPlane = node.cp;
+    nodes =
+      map (node: {
+        inherit (node) hostname;
+        controlPlane = node.cplane;
 
-      ipAddress = node.ipv4;
-      installDiskSelector.type = "ssd";
-      networkInterfaces = [
-        {
-          deviceSelector.hardwareAddr = node.mac;
-          addresses = [node.net4];
-          routes = [
-            {
-              network = "0.0.0.0/0";
-              gateway = cluster.network.uplink.gw4;
-            }
-            # IPv6 default route is auto-configured.
-          ];
-          dhcp = false;
-        }
-      ];
-    }) (cp ++ workers);
+        ipAddress = node.ipv4;
+        installDiskSelector.type = "ssd";
+        networkInterfaces = [
+          {
+            deviceSelector.hardwareAddr = node.mac;
+            addresses = [node.net4];
+            routes = [
+              {
+                network = "0.0.0.0/0";
+                gateway = cluster.network.uplink.gw4;
+              }
+              # IPv6 default route is auto-configured.
+            ];
+            dhcp = false;
+          }
+        ];
+      })
+      cluster.nodes.talos;
 
     patches = [
       (toYAML {} {
@@ -54,6 +52,7 @@ in
           # Use Cilium's KubeProxy replacement.
           proxy.disabled = true;
         };
+        # TODO: move to network config!
         machine.network.nameservers = [
           "1.1.1.1"
           "9.9.9.9"

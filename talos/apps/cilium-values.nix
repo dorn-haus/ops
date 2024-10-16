@@ -1,5 +1,5 @@
-{pkgs, ...}: let
-  cluster = import ../../cluster;
+inputs @ {pkgs, ...}: let
+  cluster = import ../../cluster inputs;
 
   writeYAML = (pkgs.formats.yaml {}).generate;
 in

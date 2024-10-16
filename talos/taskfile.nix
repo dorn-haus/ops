@@ -116,7 +116,7 @@ in
         # TODO: Try to get the Flux token from Bitwarden.
         desc = "Bootstrap Talos: #5 - install flux";
         cmd = let
-          cluster = import ../cluster;
+          cluster = import ../cluster inputs;
         in ''
           ${flux} bootstrap github \
             --owner=${cluster.github.owner} \
