@@ -4,15 +4,13 @@
     name: "{{ inventory_hostname }}"
 
 - name: Configure hosts file
-  ansible.builtin.copy:
+  ansible.builtin.template:
+    src: etc/hosts.j2
     dest: /etc/hosts
     owner: root
     group: root
     mode: u=rw,g=r,o=r
     backup: true
-    content: |
-      127.0.0.1 localhost {{ inventory_hostname }} localhost.dorn.haus {{ inventory_hostname }}.dorn.haus
-      ::1       localhost {{ inventory_hostname }} localhost.dorn.haus {{ inventory_hostname }}.dorn.haus
 
 - name: Update /etc/network/interfaces
   ansible.builtin.template:
