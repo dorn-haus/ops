@@ -18,5 +18,11 @@ inputs @ {pkgs, ...}: let
   writeYAML = (pkgs.formats.yaml {}).generate;
 in
   writeYAML "inventory.yaml" {
-    alpine.hosts = clusterGroup cluster.nodes.alpine;
+    alpine = {
+      hosts = clusterGroup cluster.nodes.alpine;
+      vars = {
+        inherit (cluster) network;
+        cluster = {inherit (cluster) domain name;};
+      };
+    };
   }

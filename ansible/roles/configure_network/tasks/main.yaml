@@ -14,35 +14,20 @@
       127.0.0.1 localhost {{ inventory_hostname }} localhost.dorn.haus {{ inventory_hostname }}.dorn.haus
       ::1       localhost {{ inventory_hostname }} localhost.dorn.haus {{ inventory_hostname }}.dorn.haus
 
-- name: Configure network interfaces
-  when: ansible_facts["os_family"] | lower == "alpine"
-  vars:
-    ipv4:
-      gateway: 10.0.0.1
-      nameservers:
-      - 1.1.1.1
-      - 8.8.8.8
-      - 9.9.9.9
-    ipv6:
-      gateway: fe80::924d:4aff:fecc:ef8b
-      nameservers:
-      - 2606:4700:4700::1111
-      - 2001:4860:4860::8888
-      - 2620:fe::fe
-  block:
-  - name: Update /etc/network/interfaces
-    ansible.builtin.template:
-      src: etc/network/interfaces.j2
-      dest: /etc/network/interfaces
-      owner: root
-      group: root
-      mode: u=rw,g=r,o=r
-      backup: true
-  - name: Update /etc/resolv.conf
-    ansible.builtin.template:
-      src: etc/resolv.conf.j2
-      dest: /etc/resolv.conf
-      owner: root
-      group: root
-      mode: u=rw,g=r,o=r
-      backup: true
+- name: Update /etc/network/interfaces
+  ansible.builtin.template:
+    src: etc/network/interfaces.j2
+    dest: /etc/network/interfaces
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+    backup: true
+
+- name: Update /etc/resolv.conf
+  ansible.builtin.template:
+    src: etc/resolv.conf.j2
+    dest: /etc/resolv.conf
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+    backup: true

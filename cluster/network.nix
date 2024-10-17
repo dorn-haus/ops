@@ -44,8 +44,27 @@ in {
     };
   };
 
-  uplink = {
+  uplink = let
+    pick = matrix: map builtins.head matrix;
+  in {
     gw4 = "10.0.0.1";
     gw6 = "fe80::3a35:fbff:fe0d:c7bf";
+
+    dns4 = let
+      cloudflare = ["1.1.1.1" "1.0.0.1"];
+      google = ["8.8.8.8" "8.8.4.4"];
+      quad9 = ["9.9.9.9" "149.112.112.112"];
+    in {
+      two = pick [cloudflare quad9];
+      three = pick [cloudflare google quad9];
+    };
+    dns6 = let
+      cloudflare = ["2606:4700:4700::1111" "2606:4700:4700::1001"];
+      google = ["2001:4860:4860::8888" "2001:4860:4860::8844"];
+      quad9 = ["2620:fe::fe" "2620:fe::9"];
+    in {
+      two = pick [cloudflare quad9];
+      three = pick [cloudflare google quad9];
+    };
   };
 }

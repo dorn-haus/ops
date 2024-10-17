@@ -1,4 +1,4 @@
-search locker.dorn.haus
-{% for ip in ipv4.nameservers + ipv6.nameservers %}
+search {{ cluster.name }}.{{ cluster.domain }}
+{% for ip in network.uplink.dns4.two + network.uplink.dns6.two %}
 nameserver {{ ip }}
 {% endfor +%}

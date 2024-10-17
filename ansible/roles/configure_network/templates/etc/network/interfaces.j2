@@ -5,10 +5,10 @@ auto eth0
 
 iface eth0 inet static
     address {{ net4 }}
-    gateway {{ ipv4.gateway }}
-    dns-nameservers{% for ip in ipv4.nameservers %} {{ ip }}{% endfor +%}
+    gateway {{ network.uplink.gw4 }}
+    dns-nameservers{% for ip in network.uplink.dns4.three %} {{ ip }}{% endfor +%}
 
 iface eth0 inet6 static
     address {{ net6 }}
-    gateway {{ ipv6.gateway }}
-    dns-nameservers{% for ip in ipv6.nameservers %} {{ ip }}{% endfor -%}
+    gateway {{ network.uplink.gw6 }}
+    dns-nameservers{% for ip in network.uplink.dns6.three %} {{ ip }}{% endfor -%}
