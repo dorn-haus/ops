@@ -50,6 +50,7 @@
         talhelper = inputs'.talhelper.packages.default;
 
         params = {pkgs = pkgs // {inherit talhelper;};};
+        inventory-yaml = import ./ansible/inventory.nix params;
         talconfig-yaml = import ./talos/talconfig.nix params;
         taskfile-yaml = import ./taskfile.nix params;
 
@@ -99,6 +100,7 @@
           ];
 
           env = {
+            ANSIBLE_INVENTORY = inventory-yaml;
             TALCONFIG = talconfig-yaml;
             TALSECRET = ./talos/talsecret.sops.yaml;
           };

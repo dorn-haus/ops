@@ -4,11 +4,11 @@ iface lo inet loopback
 auto eth0
 
 iface eth0 inet static
-    address {{ ipv4.addr }}
+    address {{ net4 }}
     gateway {{ ipv4.gateway }}
     dns-nameservers{% for ip in ipv4.nameservers %} {{ ip }}{% endfor +%}
 
 iface eth0 inet6 static
-    address {{ ipv6.addr }}
+    address {{ net6 }}
     gateway {{ ipv6.gateway }}
     dns-nameservers{% for ip in ipv6.nameservers %} {{ ip }}{% endfor -%}
