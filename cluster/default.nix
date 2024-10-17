@@ -1,4 +1,4 @@
-{
+inputs: {
   name = "locker";
   domain = "dorn.haus";
 
@@ -8,4 +8,5 @@
   };
 
   network = import ./network.nix;
+  nodes = import ./nodes inputs;
 }
