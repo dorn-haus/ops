@@ -3,7 +3,7 @@
   ansible.builtin.hostname:
     name: "{{ inventory_hostname }}"
 
-- name: Configure hosts file
+- name: Configure /etc/hosts
   ansible.builtin.template:
     src: etc/hosts.j2
     dest: /etc/hosts
@@ -12,7 +12,7 @@
     mode: u=rw,g=r,o=r
     backup: true
 
-- name: Update /etc/network/interfaces
+- name: Configure /etc/network/interfaces
   ansible.builtin.template:
     src: etc/network/interfaces.j2
     dest: /etc/network/interfaces
@@ -21,7 +21,7 @@
     mode: u=rw,g=r,o=r
     backup: true
 
-- name: Update /etc/resolv.conf
+- name: Configure /etc/resolv.conf
   ansible.builtin.template:
     src: etc/resolv.conf.j2
     dest: /etc/resolv.conf
