@@ -83,7 +83,7 @@ in
         desc = "Bootstrap Talos: #3 - bootstrap k8s cluster";
         cmd = ''
           echo "Installing Talos, this might take a while and print errors"
-          until ${talhelper} gencommand bootstrap --config-file="$TALCONFIG" |
+          until ${talhelper} gencommand bootstrap --config-file="$TALCONFIG" --out-dir=${state} |
             ${bash}
             do ${sleep} 2
           done
@@ -204,6 +204,7 @@ in
         cmd = ''
           ${talhelper} gencommand reset \
             --config-file=$TALCONFIG \
+            --out-dir="${state}" \
             --extra-flags="--reboot --system-labels-to-wipe=STATE --system-labels-to-wipe=EPHEMERAL --graceful=false --wait=false" |
             ${bash}
         '';
